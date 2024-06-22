@@ -1,6 +1,8 @@
 // src/Login.js
 import React, { useState } from 'react';
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
+import Loginbg from '../Images/loginbg.png';
+import axios from 'axios';
 
 const backendUrl = 'http://127.0.0.1:5000'; // Replace with your actual backend URL
 
@@ -18,21 +20,20 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: username, password }),
+      const response = await axios.post(`${backendUrl}/api/auth/login`, {
+        username,
+        password,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.role === 'Admin') {
+      if (response.status === 200) {
+        const { role, token } = response.data;
+        localStorage.setItem('token', token);
+        
+        if (role === 'Admin') {
           window.location.href = '/admin/dashboard';
-        } else if (data.role === 'Student') {
+        } else if (role === 'Student') {
           window.location.href = '/student/dashboard';
-        } else if (data.role === 'Evaluator') {
+        } else if (role === 'Evaluator') {
           window.location.href = '/evaluator/dashboard';
         }
       } else {
@@ -45,12 +46,12 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="flex bg-white rounded-lg shadow-lg overflow-hidden w-2/3 max-w-4xl">
-        <div className="w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('/path/to/your/image.jpg')` }}>
-          <img src="login-card.png" alt="Library Background" className="w-full h-full object-cover" />
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
+        <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${Loginbg})` }}>
+          {/* The image will be visible only on md and larger screens */}
         </div>
-        <div className="w-1/2 p-8 flex flex-col justify-center">
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center border-y-4 border-maroon rounded-md">
           <h2 className="text-2xl font-bold text-maroon mb-2">Welcome Back</h2>
           <p className="text-maroon mb-4">Please sign in to continue</p>
           <form onSubmit={handleLogin}>
@@ -62,7 +63,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon"
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
               />
             </div>
             <div className="relative mb-4">
@@ -73,7 +74,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon"
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
               />
             </div>
             <div className="flex items-center justify-between mb-4">

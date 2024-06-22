@@ -1,81 +1,125 @@
-// src/Login.js
+// src/Signup.js
 import React, { useState } from 'react';
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
-
+import Loginbg from '../Images/loginbg.png';
+import axios from 'axios';
 const backendUrl = 'http://127.0.0.1:5000'; // Replace with your actual backend URL
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('Student');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
     try {
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: username, password }),
+      const response = await axios.post(`${backendUrl}/api/signup`, {
+        username,
+        email,
+        role,
+        password,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.role === 'Admin') {
-          window.location.href = '/admin/dashboard';
-        } else if (data.role === 'Student') {
-          window.location.href = '/student/dashboard';
-        } else if (data.role === 'Evaluator') {
-          window.location.href = '/evaluator/dashboard';
-        }
+      if (response.status === 200) {
+        // Redirect or perform other actions based on the response
+        window.location.href = '/login';
       } else {
-        setError('Invalid credentials');
+        setError('Failed to sign up');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Failed to login');
+      console.error('Signup error:', error);
+      setError('Failed to sign up');
     }
   };
 
+
+  
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="flex bg-white rounded-lg shadow-lg overflow-hidden w-2/3 max-w-4xl">
-        <div className="w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('/path/to/your/image.jpg')` }}>
-          <img src="login-card.png" alt="Library Background" className="w-full h-full object-cover" />
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
+        <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${Loginbg})` }}>
+          {/* The image will be visible only on md and larger screens */}
         </div>
-        <div className="w-1/2 p-8 flex flex-col justify-center">
-          <h2 className="text-2xl font-bold text-maroon mb-2">Welcome Back</h2>
-          <p className="text-maroon mb-4">Please sign in to continue</p>
-          <form onSubmit={handleLogin}>
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center border-y-4 border-maroon rounded-md">
+          <h2 className="text-2xl font-bold text-maroon mb-2">Welcome to Clover Technologies</h2>
+          <p className="text-maroon mb-4">Please sign up with your details to continue</p>
+          <form onSubmit={handleSignup}>
+         
+
             <div className="relative mb-4">
-              <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <input
+            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
                 type="text"
                 placeholder="Enter your Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon"
-              />
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
+            />
             </div>
             <div className="relative mb-4">
-              <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <input
+            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
+                type="email"
+                placeholder="Enter your Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
+            />
+            </div>
+            <div className="relative mb-4">
+            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
+            >
+                <option value="" >Select the role</option>
+                <option value="Student">Student</option>
+                <option value="Admin">Admin</option>
+                <option value="Evaluator">Evaluator</option>
+            </select>
+            </div>
+            <div className="relative mb-4">
+            <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                placeholder="Enter your Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon"
-              />
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
+            />
             </div>
+            <div className="relative mb-4">
+            <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Confirm your Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
+            />
+            </div>
+
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <input
@@ -86,10 +130,9 @@ const Signup = () => {
                 />
                 <label htmlFor="show-password" className="text-sm text-gray-700">Show password</label>
               </div>
-              <a href="/forgot-password" className="text-sm text-maroon">Forgot password?</a>
             </div>
             <button type="submit" className="w-full py-2 bg-maroon text-white rounded-md hover:bg-maroon-dark transition duration-300">
-              Login now
+              Sign up
             </button>
             {error && <p className="text-red-500 mt-4">{error}</p>}
           </form>
