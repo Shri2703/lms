@@ -5,6 +5,7 @@ import Login from './Components/LoginPage';
 import Signup from './Components/Signup';
 import StudentDashboard from './Components/StudentDashboard';
 import AdminDashboard from './Components/AdminDashboard';
+import AssignmentDetail from './Components/AssignmentDetail';
 // import EvaluatorDashboard from './EvaluatorDashboard';
 
 const App = () => {
@@ -22,8 +23,9 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/student/dashboard" element={<StudentDashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/studentdashboard" element={<StudentDashboard />} />
+        <Route path="/admindashboard" element={<AdminDashboard />} />
+        <Route path="/assignment-detail" element={<AssignmentDetail />} />
         {/* <PrivateRoute path="/evaluator/dashboard" element={<EvaluatorDashboard />} /> */}
       </Routes>
     </Router>

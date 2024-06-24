@@ -7,6 +7,7 @@ import 'chart.js/auto';
 import navlogo from '../Images/navlogo.png';
 import banner from '../Images/profilebanner.png';
 import user from '../Images/user.png'
+import Sidebar from './Sidenavbar';
 
 const StudentDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,53 +27,12 @@ const StudentDashboard = () => {
   return (
     <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''}  bg-basic `}>
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 w-64 bg-white text-secondary transition-transform duration-300 ease-in-out z-30`}
-        onMouseEnter={() => setIsSidebarOpen(true)}
-        onMouseLeave={() => setIsSidebarOpen(false)}
-      >
-        <div className="flex items-center justify-center h-20 bg-white mt-4">
-          <img
-            src={navlogo}
-            alt="Profile"
-            className="w-90 h-13"
-          />
-        </div>
-        <nav className="flex flex-col flex-grow p-4">
-          <a
-            href="#dashboard"
-            onClick={() => setCurrentSection('dashboard')}
-            className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'dashboard' && 'bg-primary text-secondary'}`}
-          >
-            <FaTachometerAlt className="mr-3" /> Dashboard
-          </a>
-          <a
-            href="#course"
-            onClick={() => setCurrentSection('course')}
-            className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'course' && 'bg-primary text-secondary' }`}
-          >
-            <FaBook className="mr-3" /> Course
-          </a>
-          <a
-            href="#profile"
-            onClick={() => setCurrentSection('profile')}
-            className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'profile' && 'bg-primary text-secondary'}`}
-          >
-            <FaUser className="mr-3" /> Profile
-          </a>
-          
-        </nav>
-
-        <div className="absolute bottom-0 left-0 w-full px-4">
-          <a
-            href="#signout"
-            onClick=""
-            className=" flex items-center block px-4 py-2  text-primary hover:bg-primary hover:text-secondary rounded"
-          >
-            <FaSignOutAlt className="mr-3" /> Sign Out
-          </a>
-        </div>
-      </div>
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        currentSection={currentSection}
+        setCurrentSection={setCurrentSection}
+      />
 
       {/* Main Content */}
       <div className="flex-grow p-5 md:ml-4">

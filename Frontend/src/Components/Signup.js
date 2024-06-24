@@ -1,9 +1,7 @@
-// src/Signup.js
 import React, { useState } from 'react';
+import axiosInstance from '../axiosConfig'; // Adjust the import path as necessary
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
 import Loginbg from '../Images/loginbg.png';
-import axios from 'axios';
-const backendUrl = 'http://127.0.0.1:5000'; // Replace with your actual backend URL
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +25,7 @@ const Signup = () => {
     }
 
     try {
-      const response = await axios.post(`${backendUrl}/api/signup`, {
+      const response = await axiosInstance.post('/api/signup', {
         username,
         email,
         role,
@@ -42,12 +40,10 @@ const Signup = () => {
       }
     } catch (error) {
       console.error('Signup error:', error);
-      setError('Failed to sign up');
+      setError(error.response?.data?.msg || 'Failed to sign up');
     }
   };
 
-
-  
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
@@ -58,68 +54,65 @@ const Signup = () => {
           <h2 className="text-2xl font-bold text-maroon mb-2">Welcome to Clover Technologies</h2>
           <p className="text-maroon mb-4">Please sign up with your details to continue</p>
           <form onSubmit={handleSignup}>
-         
-
             <div className="relative mb-4">
-            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
+              <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
                 type="text"
                 placeholder="Enter your Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
-            />
+              />
             </div>
             <div className="relative mb-4">
-            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
+              <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
                 type="email"
                 placeholder="Enter your Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
-            />
+              />
             </div>
             <div className="relative mb-4">
-            <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <select
+              <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <select
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
-            >
+              >
                 <option value="" >Select the role</option>
                 <option value="Student">Student</option>
                 <option value="Admin">Admin</option>
                 <option value="Evaluator">Evaluator</option>
-            </select>
+              </select>
             </div>
             <div className="relative mb-4">
-            <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
+              <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
-            />
+              />
             </div>
             <div className="relative mb-4">
-            <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
+              <RiLock2Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Confirm your Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
-            />
+              />
             </div>
-
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <input
