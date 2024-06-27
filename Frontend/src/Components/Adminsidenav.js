@@ -1,5 +1,6 @@
 import React from 'react';
-import { FaTachometerAlt, FaBook, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaSignOutAlt } from 'react-icons/fa';
+import { FiGrid, FiEdit, FiBarChart, FiUser } from 'react-icons/fi';
 import navlogo from '../Images/navlogo.png'; // Adjust the import path as necessary
 
 const Adminsidenav = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurrentSection }) => {
@@ -18,41 +19,46 @@ const Adminsidenav = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurr
       </div>
       <nav className="flex flex-col flex-grow p-4">
         <a
-          href="#dashboard"
+          id="course-link"
+          href="#courselink"
           onClick={() => setCurrentSection('dashboard')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'dashboard' && 'bg-primary text-secondary'}`}
         >
-          <FaTachometerAlt className="mr-3" /> COURSE MANAGEMENT
+          <FiGrid className="mr-3" /> COURSE MANAGEMENT
         </a>
         <a
-          href="#course"
+          id="evalluator-link"
+          href="#evalluatorlink"
           onClick={() => setCurrentSection('course')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'course' && 'bg-primary text-secondary'}`}
         >
-          <FaBook className="mr-3" /> EVALUATOR MANAGEMENT
+          <FiEdit className="mr-3" /> EVALUATOR MANAGEMENT
         </a>
         <a
+          id="studentmanagement-link"
+          href="#studentmanagement"
+          onClick={() => setCurrentSection('studentmanagement')}
+          className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'studentmanagement' && 'bg-primary text-secondary'}`}
+        >
+          <FiBarChart className="mr-3" /> STUDENT MANAGEMENT
+        </a>
+        <a
+          id="profile-link"
           href="#profile"
           onClick={() => setCurrentSection('profile')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'profile' && 'bg-primary text-secondary'}`}
         >
-          <FaUser className="mr-3" />STUDENT MANAGEMENT
-        </a>
-        <a
-          href="#profile"
-          onClick={() => setCurrentSection('profile')}
-          className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'profile' && 'bg-primary text-secondary'}`}
-        >
-          <FaUser className="mr-3" />PROFILE
+          <FiUser className="mr-3" /> PROFILE
         </a>
       </nav>
       <div className="absolute bottom-0 left-0 w-full px-4">
         <a
+          id="signout-link"
           href="#signout"
           onClick={() => console.log('Sign Out')}
           className="flex items-center block px-4 py-2 text-primary hover:bg-primary hover:text-secondary rounded"
         >
-          <FaSignOutAlt className="mr-3" />SIGN OUT
+          <FaSignOutAlt className="mr-3" /> SIGN OUT
         </a>
       </div>
     </div>

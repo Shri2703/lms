@@ -16,6 +16,7 @@ app.use(bodyParser.json());
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Increase the timeout to 5000ms (5 seconds)
 })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('MongoDB connection error:', err));
