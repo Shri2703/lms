@@ -20,8 +20,12 @@ const StudentDashboard = () => {
   };
   const navigate = useNavigate();
 
+  const handleDBMSClick = () => {
+    navigate('/assignmentDetails');
+  };
+
   const handleAssignmentClick = () => {
-    navigate('/assignment-detail');
+    navigate('/assignmentUpload');
   };
 
   return (
@@ -226,13 +230,13 @@ const StudentDashboard = () => {
               <div>
                 {/* First Main Div - Recently Viewed Courses */}
                 <div className="mb-8">
-                  <h3 className=" flex  items-left text-lg font-bold text-dark mb-4">Recently Viewed Courses</h3>
+                  <h3 className="flex items-left text-lg font-bold text-dark mb-4">Recently Viewed Courses</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white shadow-lg rounded-lg p-4">
+                    <div className="bg-white shadow-lg rounded-lg p-4" onClick={handleDBMSClick}>
                       <div className="flex items-center mb-4 space-x-8">
                         <FaBook className="text-primary" />
                         <h3 className="text-lg font-bold text-primary">DBMS</h3>
-                        <p className="text-sm text-gray-500 ml-auto ">Valid Till: June 30, 2024</p>
+                        <p className="text-sm text-gray-500 ml-auto">Valid Till: June 30, 2024</p>
                       </div>
                       <p className="text-sm text-gray-700 mb-2">DBMS_2024</p>
                       <div className="mb-2">
@@ -279,6 +283,7 @@ const StudentDashboard = () => {
                         </div>
                       </div>
                     </div>
+
                     {/* Duplicate card for Recently Viewed Courses */}
                     <div className="bg-white shadow-lg rounded-lg p-4" onClick={handleAssignmentClick}>
                       <div className="flex items-center mb-4 space-x-4">
@@ -701,7 +706,7 @@ const StudentDashboard = () => {
                 </div> */}
 
 
-                
+
               </div>
             </div>
           </div>

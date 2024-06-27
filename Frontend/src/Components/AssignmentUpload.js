@@ -7,7 +7,7 @@ import navlogo from '../Images/navlogo.png';
 import user from '../Images/user.png'
 
 
-const AssignmentDetail = () => {
+const AssignmentUpload = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSection, setCurrentSection] = useState('dashboard'); // State to track the current section
@@ -232,4 +232,5 @@ const handleReturnToDashboard = () => {
   );
 };
 
-export default AssignmentDetail;
+
+export default AssignmentUpload;
