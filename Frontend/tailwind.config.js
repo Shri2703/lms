@@ -10,7 +10,7 @@ module.exports = {
         secondary: '#FAE5EA',
         basic:'#F1F1F1',
         dark:'#000',
-        bar:'#A3FFD6',
+        bar:'#22CAAD',
         maroon: '#800000',
         'maroon-dark' : '#660000',
         
