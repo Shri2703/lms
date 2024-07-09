@@ -1,14 +1,13 @@
-// src/Login.js
 import React, { useState } from 'react';
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
 import Loginbg from '../Images/loginbg.png';
 import axios from 'axios';
 
-const backendUrl = 'http://127.0.0.1:5000'; // Replace with your actual backend URL
+const backendUrl = 'http://localhost:5000'; // Replace with your actual backend URL
 
-const Login = () => {
+const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -21,34 +20,43 @@ const Login = () => {
 
     try {
       const response = await axios.post(`${backendUrl}/api/auth/login`, {
-        username,
+        email,
         password,
       });
 
       if (response.status === 200) {
-        const { role, token } = response.data;
+        const { token } = response.data;
         localStorage.setItem('token', token);
-        
-        if (role === 'Admin') {
-          window.location.href = '/admin/dashboard';
-        } else if (role === 'Student') {
-          window.location.href = '/student/dashboard';
-        } else if (role === 'Evaluator') {
-          window.location.href = '/evaluator/dashboard';
+
+        const userData = JSON.parse(atob(token.split('.')[1]));
+        if (userData.role === 'Admin') {
+          window.location.href = '/admindashboard'; // Redirect to admin dashboard
+        } else if (userData.role === 'Student') {
+          window.location.href = '/studentdashboard'; // Redirect to student dashboard
+        } else if (userData.role === 'Evaluator') {
+          window.location.href = '/evaluatordashboard'; // Redirect to evaluator dashboard
         }
       } else {
-        setError('Invalid credentials');
+        setError('Invalid credentials in data');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Failed to login');
+      if (error.response && error.response.data) {
+        console.log('Error response data:', error.response.data);
+        setError(error.response.data.msg || 'Invalid credentials');
+      } else {
+        setError('Invalid credentials');
+      }
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl ">
-        <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${Loginbg})` }}>
+      <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
+        <div
+          className="hidden md:block md:w-1/2 bg-cover bg-center"
+          style={{ backgroundImage: `url(${Loginbg})` }}
+        >
           {/* The image will be visible only on md and larger screens */}
         </div>
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-center border-y-4 border-maroon rounded-md">
@@ -58,10 +66,10 @@ const Login = () => {
             <div className="relative mb-4">
               <RiUser3Line className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
               <input
-                type="text"
-                placeholder="Enter your Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="Enter your Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
               />
@@ -85,11 +93,18 @@ const Login = () => {
                   onChange={handleShowPassword}
                   className="mr-2"
                 />
-                <label htmlFor="show-password" className="text-sm text-gray-700">Show password</label>
+                <label htmlFor="show-password" className="text-sm text-gray-700">
+                  Show password
+                </label>
               </div>
-              <a href="/forgot-password" className="text-sm text-maroon">Forgot password?</a>
+              <a href="/forgot-password" className="text-sm text-maroon">
+                Forgot password?
+              </a>
             </div>
-            <button type="submit" className="w-full py-2 bg-maroon text-white rounded-md hover:bg-maroon-dark transition duration-300">
+            <button
+              type="submit"
+              className="w-full py-2 bg-maroon text-white rounded-md hover:bg-maroon-dark transition duration-300"
+            >
               Login now
             </button>
             {error && <p className="text-red-500 mt-4">{error}</p>}
@@ -100,4 +115,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import axiosInstance from '../axiosConfig'; // Adjust the import path as necessary
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
 import Loginbg from '../Images/loginbg.png';
+import axios from 'axios';
+
+const backendUrl = 'http://localhost:5000'; // Update if your backend URL is different
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,15 +27,14 @@ const Signup = () => {
     }
 
     try {
-      const response = await axiosInstance.post('/api/signup', {
-        username,
+      const response = await axios.post(`${backendUrl}/api/users/register`, {
+        name: username,
         email,
         role,
         password,
       });
 
-      if (response.status === 200) {
-        // Redirect or perform other actions based on the response
+      if (response.status === 201) {
         window.location.href = '/login';
       } else {
         setError('Failed to sign up');
@@ -47,9 +48,7 @@ const Signup = () => {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-4xl">
-        <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${Loginbg})` }}>
-          {/* The image will be visible only on md and larger screens */}
-        </div>
+        <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${Loginbg})` }}></div>
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-center border-y-4 border-maroon rounded-md">
           <h2 className="text-2xl font-bold text-maroon mb-2">Welcome to Clover Technologies</h2>
           <p className="text-maroon mb-4">Please sign up with your details to continue</p>
@@ -85,7 +84,7 @@ const Signup = () => {
                 required
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
               >
-                <option value="" >Select the role</option>
+                <option value="">Select the role</option>
                 <option value="Student">Student</option>
                 <option value="Admin">Admin</option>
                 <option value="Evaluator">Evaluator</option>
