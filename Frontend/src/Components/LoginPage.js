@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode as jwt_decode } from 'jwt-decode';
+
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
 import Loginbg from '../Images/loginbg.png';
 import axios from 'axios';
@@ -10,6 +13,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -27,14 +31,19 @@ const LoginPage = () => {
       if (response.status === 200) {
         const { token } = response.data;
         localStorage.setItem('token', token);
+        
 
-        const userData = JSON.parse(atob(token.split('.')[1]));
+        // Decode the token to get user data
+        const userData = jwt_decode(token);
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        // Redirect based on user role
         if (userData.role === 'Admin') {
-          window.location.href = '/admindashboard'; // Redirect to admin dashboard
+          navigate('/admindashboard');
         } else if (userData.role === 'Student') {
-          window.location.href = '/studentdashboard'; // Redirect to student dashboard
+          navigate('/studentdashboard');
         } else if (userData.role === 'Evaluator') {
-          window.location.href = '/evaluatordashboard'; // Redirect to evaluator dashboard
+          navigate('/evaluatordashboard');
         }
       } else {
         setError('Invalid credentials in data');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,  useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTachometerAlt, FaBook, FaUser, FaBars, FaSearch, FaSun, FaMoon, FaBell, FaSignOutAlt, FaRegComments, FaCalendarAlt, FaClock, FaBookmark, FaTrophy, FaMedal, FaTrash } from 'react-icons/fa';
 import { Pie } from 'react-chartjs-2';
@@ -8,11 +8,16 @@ import navlogo from '../Images/navlogo.png';
 import banner from '../Images/profilebanner.png';
 import user from '../Images/user.png'
 import Sidebar from './Sidenavbar';
+import { jwtDecode as jwt_decode } from 'jwt-decode';
+
+
 
 const StudentDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSection, setCurrentSection] = useState('dashboard'); // State to track the current section
+  const [username, setUsername] = useState('');
+  
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -23,10 +28,21 @@ const StudentDashboard = () => {
   const handleDBMSClick = () => {
     navigate('/assignmentDetails');
   };
+  
 
   const handleAssignmentClick = () => {
     navigate('/assignmentUpload');
   };
+  useEffect(() => {
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Decode the token to get user data
+      const decodedToken = jwt_decode(token);
+      setUsername(decodedToken.name); // Adjust this line based on the structure of your token payload
+    }
+  }, []);
+  
 
   return (
     <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''}  bg-basic `}>
@@ -68,7 +84,7 @@ const StudentDashboard = () => {
               className="w-10 h-10 rounded-full"
             />
             <div>
-              <p className="text-primary">John Doe</p>
+              <p className="text-primary">{username}</p>
               <p className="text-sm text-dark">Student</p>
             </div>
           </div>
@@ -633,7 +649,7 @@ const StudentDashboard = () => {
                   <div className="flex items-center mb-4 space-x-8">
                     <img src={user} alt="Profile" className="w-16 h-16 rounded-lg mr-4" />
                     <div>
-                      <h3 className="text-lg font-bold text-primary">John Doe</h3>
+                      <h3 className="text-lg font-bold text-primary">{username}</h3>
                       <p className="text-sm text-gray-600">Student</p>
                     </div>
                   </div>

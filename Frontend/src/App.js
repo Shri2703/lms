@@ -30,6 +30,7 @@ const App = () => {
         <Route path="/assignmentdetails" element={<AssignmentDetails/>} />
         {/* <PrivateRoute path="/evaluator/dashboard" element={<EvaluatorDashboard />} /> */}
       </Routes>
+      
     </Router>
   );
 };
