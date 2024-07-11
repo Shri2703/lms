@@ -20,23 +20,23 @@ const Adminsidenav = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurr
       <nav className="flex flex-col flex-grow p-4">
         <a
           id="course-link"
-          href="#courselink"
+          href="#course-link"
           onClick={() => setCurrentSection('dashboard')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'dashboard' && 'bg-primary text-secondary'}`}
         >
           <FiGrid className="mr-3" /> COURSE MANAGEMENT
         </a>
         <a
-          id="evalluator-link"
-          href="#evalluatorlink"
-          onClick={() => setCurrentSection('course')}
-          className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'course' && 'bg-primary text-secondary'}`}
+          id="evaluator-link"
+          href="#evaluator-link"
+          onClick={() => setCurrentSection('evaluator')}
+          className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'evaluator' && 'bg-primary text-secondary'}`}
         >
           <FiEdit className="mr-3" /> EVALUATOR MANAGEMENT
         </a>
         <a
-          id="studentmanagement-link"
-          href="#studentmanagement"
+          id="student-management-link"
+          href="#student-management-link"
           onClick={() => setCurrentSection('studentmanagement')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'studentmanagement' && 'bg-primary text-secondary'}`}
         >
@@ -44,7 +44,7 @@ const Adminsidenav = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurr
         </a>
         <a
           id="profile-link"
-          href="#profile"
+          href="#profile-link"
           onClick={() => setCurrentSection('profile')}
           className={`flex items-center px-2 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${currentSection === 'profile' && 'bg-primary text-secondary'}`}
         >
@@ -54,7 +54,7 @@ const Adminsidenav = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurr
       <div className="absolute bottom-0 left-0 w-full px-4">
         <a
           id="signout-link"
-          href="#signout"
+          href="#signout-link"
           onClick={() => console.log('Sign Out')}
           className="flex items-center block px-4 py-2 text-primary hover:bg-primary hover:text-secondary rounded"
         >

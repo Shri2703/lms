@@ -17,6 +17,7 @@ const StudentDashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSection, setCurrentSection] = useState('dashboard'); // State to track the current section
   const [username, setUsername] = useState('');
+
   
 
   const toggleDarkMode = () => {
@@ -34,14 +35,13 @@ const StudentDashboard = () => {
     navigate('/assignmentUpload');
   };
   useEffect(() => {
-    // Retrieve the token from localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      // Decode the token to get user data
-      const decodedToken = jwt_decode(token);
-      setUsername(decodedToken.name); // Adjust this line based on the structure of your token payload
+      const userData = jwt_decode(token);
+      setUsername(userData.user.name);
     }
   }, []);
+  
   
 
   return (
@@ -126,10 +126,10 @@ const StudentDashboard = () => {
                   />
                 </div>
                 <div className="flex items-center space-x-4 mt-4">
-                  <p className="text-lg font-bold text-primary">John Doe</p>
+                  <p className="text-lg font-bold text-primary">{username}</p>
                 </div>
                 <div className="flex items-center space-x-4 mt-4">
-                  <p className="text-sm text-gray-800">john.doe@example.com</p>
+                  <p className="text-sm text-gray-800">{username}@gmail.com</p>
                 </div>
 
                 <div className="flex items-center space-x-14 mt-4">
@@ -660,7 +660,7 @@ const StudentDashboard = () => {
                   </div>
                   <div className="mb-2 flex jusity-left">
                     <span className="text-dark ">Email:</span>
-                    <span className="text-primary ml-12">user@example.com</span>
+                    <span className="text-primary ml-12">{username}@gmail.com</span>
                   </div>
                   <div className="mb-2 flex jusity-left">
                     <span className="text-dark ">Phone:</span>

@@ -66,10 +66,6 @@ app.post('/api/users/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate JWT token for user data
-    const payload = { name, email, role };
-    const token = jwt.sign(payload, jwtSecret);
-
     // Create new user
     user = new User({
       name,
@@ -80,14 +76,13 @@ app.post('/api/users/register', async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ msg: 'User registered successfully', token });
+    res.status(201).json({ msg: 'User registered successfully' });
   } catch (err) {
     console.error('Error registering user:', err.message);
     res.status(500).send('Server Error');
   }
 });
 
-// Login Route
 // Login Route
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
@@ -109,6 +104,7 @@ app.post('/api/auth/login', async (req, res) => {
     const payload = {
       user: {
         id: user.id,
+        name: user.name,
         role: user.role,
       }
     };
@@ -117,13 +113,46 @@ app.post('/api/auth/login', async (req, res) => {
       if (err) throw err;
       res.json({ token, user: { name: user.name, role: user.role } }); // Include user data in the response
     });
-    
+
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).send('Server Error');
   }
 });
 
+// Middleware to verify the token
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization').replace('Bearer ', '');
+
+  if (!token) {
+    return res.status(401).json({ msg: 'No token, authorization denied' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret); // Use the same secret key as in your login function
+    req.user = decoded.user;
+    next();
+  } catch (error) {
+    res.status(401).json({ msg: 'Token is not valid' });
+  }
+};
+
+// Check Role Route
+app.get('/api/auth/checkRole', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.json({ role: user.role });
+  } catch (error) {
+    console.error('Check role error:', error.message);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

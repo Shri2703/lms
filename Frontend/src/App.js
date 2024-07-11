@@ -7,6 +7,7 @@ import StudentDashboard from './Components/StudentDashboard';
 import AdminDashboard from './Components/AdminDashboard';
 import AssignmentUpload from './Components/AssignmentUpload';
 import AssignmentDetails from './Components/AssignmentDetails'
+import CreateNewTestPage from './Components/CreateNewTestPage';
 // import EvaluatorDashboard from './EvaluatorDashboard';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/assignmentUpload" element={<AssignmentUpload />} />
         <Route path="/assignmentdetails" element={<AssignmentDetails/>} />
+        <Route path="/createnewtest" element={<CreateNewTestPage />} />
         {/* <PrivateRoute path="/evaluator/dashboard" element={<EvaluatorDashboard />} /> */}
       </Routes>
       

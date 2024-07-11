@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode as jwt_decode } from 'jwt-decode';
-
 import { RiUser3Line, RiLock2Line } from 'react-icons/ri';
 import Loginbg from '../Images/loginbg.png';
+import { jwtDecode as jwt_decode } from 'jwt-decode';
 import axios from 'axios';
 
 const backendUrl = 'http://localhost:5000'; // Replace with your actual backend URL
@@ -21,6 +20,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log('Logging in with:', email, password);
 
     try {
       const response = await axios.post(`${backendUrl}/api/auth/login`, {
@@ -28,34 +28,44 @@ const LoginPage = () => {
         password,
       });
 
+      console.log('Login response:', response);
+
       if (response.status === 200) {
         const { token } = response.data;
+        console.log('Received token:', token);
+
+        // Store token in localStorage
         localStorage.setItem('token', token);
-        
 
         // Decode the token to get user data
         const userData = jwt_decode(token);
-        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('Decoded user data:', userData);
 
-        // Redirect based on user role
-        if (userData.role === 'Admin') {
+        // Check user role against backend to ensure security
+        const roleCheckResponse = await axios.get(`${backendUrl}/api/auth/checkRole`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log('Role check response:', roleCheckResponse);
+
+        // Redirect based on verified user role from backend
+        if (roleCheckResponse.data.role === 'Admin') {
           navigate('/admindashboard');
-        } else if (userData.role === 'Student') {
+        } else if (roleCheckResponse.data.role === 'Student') {
           navigate('/studentdashboard');
-        } else if (userData.role === 'Evaluator') {
+        } else if (roleCheckResponse.data.role === 'Evaluator') {
           navigate('/evaluatordashboard');
+        } else {
+          setError('Unknown user role');
         }
-      } else {
-        setError('Invalid credentials in data');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      if (error.response && error.response.data) {
-        console.log('Error response data:', error.response.data);
-        setError(error.response.data.msg || 'Invalid credentials');
       } else {
         setError('Invalid credentials');
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
     }
   };
 

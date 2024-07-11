@@ -1,32 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaSearch, FaSun, FaMoon, FaBell } from 'react-icons/fa';
+import { FaBars, FaSearch, FaSun, FaMoon, FaBell, FaArrowDown } from 'react-icons/fa';
 import user from '../Images/user.png';
-import Adminsidenav from './Adminsidenav';
+import Adminsidenav from './Adminsidenav'; // Ensure this path is correct
+import { jwtDecode as jwt_decode } from 'jwt-decode';
 
 const AdminDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [currentSection, setCurrentSection] = useState('dashboard'); // State to track the current section
+  const [currentSection, setCurrentSection] = useState('dashboard');
+  const [username, setUsername] = useState('');
+  const [courseDetails, setCourseDetails] = useState({
+    DBMS: false,
+    OOPS: false,
+    DSA: false,
+  });
+  const [courses, setCourses] = useState([
+    { title: 'DBMS', description: 'Database Management Systems' },
+    { title: 'OOPS', description: 'Object Oriented Programming' },
+    { title: 'DSA', description: 'Data Structures and Algorithms' },
+  ]);
+  const [showAddCourseForm, setShowAddCourseForm] = useState(false);
+  const [newCourse, setNewCourse] = useState({ title: '', description: '' });
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };
 
+  const toggleCourseDetails = (course) => {
+    setCourseDetails((prevDetails) => ({
+      ...prevDetails,
+      [course]: !prevDetails[course],
+    }));
+  };
+
+  const handleAddCourse = () => {
+    setCourses([...courses, newCourse]);
+    setShowAddCourseForm(false);
+    setNewCourse({ title: '', description: '' });
+  };
+
   const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const userData = jwt_decode(token);
+      setUsername(userData.user.name);
+    }
+  }, []);
+
+  const handleCreateNewTest = () => {
+    navigate('/createnewtest');
+  };
 
   return (
     <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basic`}>
-      {/* Sidebar */}
       <Adminsidenav 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
       />
-
-      {/* Main Content */}
       <div className="flex-grow p-5 md:ml-4">
         <button
           className="md:hidden flex items-center mb-4 px-3 py-2 border rounded text-primary border-gray-600 hover:text-primary hover:bg-secondary"
@@ -56,50 +91,124 @@ const AdminDashboard = () => {
               className="w-10 h-10 rounded-full"
             />
             <div>
-              <p className="text-primary">John Doe</p>
-              <p className="text-sm text-dark">Student</p>
+              <p className="text-primary">{username}</p>
+              <p className="text-sm text-dark">Admin</p>
             </div>
           </div>
         </div>
-
-        {/* Conditional Rendering based on currentSection */}
-        {currentSection === '#courselink' && (
-          <div id="#courselink">
-            <h2 className="text-xl font-bold text-primary mb-4">Dashboard Content</h2>
-            {/* Add your dashboard content here */}
+        {currentSection === 'dashboard' && (
+          <div id="course-link">
+            <h2 className="text-xl font-bold text-primary mb-4">Course Management</h2>
+            <div className="space-y-4">
+              {courses.map((course, index) => (
+                <div key={index} className="p-4 border rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">{course.title}</h3>
+                      <p>{course.description}</p>
+                    </div>
+                    <button
+                      onClick={() => toggleCourseDetails(course.title)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                    >
+                      View More
+                    </button>
+                  </div>
+                  {courseDetails[course.title] && (
+                    <div className="mt-4 space-y-4">
+                      <div className="p-4 border rounded-md flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <span> Test</span>
+                          <button className="px-4 py-2 bg-orange-400 text-white rounded-md">Upcoming</button>
+                        </div>
+                        <FaArrowDown />
+                      </div>
+                      <div className="p-4 border rounded-md flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <span>Quiz 2</span>
+                          <button className="px-4 py-2 bg-green-400 text-white rounded-md">Completed</button>
+                        </div>
+                        <FaArrowDown />
+                      </div>
+                      <div className="p-4 border rounded-md flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <span>Quiz 1</span>
+                          <button className="px-4 py-2 bg-green-400 text-white rounded-md">Completed</button>
+                        </div>
+                        <FaArrowDown />
+                      </div>
+                      <div className="flex justify-center">
+                        <button 
+                          onClick={handleCreateNewTest} 
+                          className="px-6 py-2 bg-gray-500 text-white rounded-md"
+                        >
+                          Create New Test
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={() => setShowAddCourseForm(!showAddCourseForm)}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md"
+                >
+                  Add Course
+                </button>
+              </div>
+              {showAddCourseForm && (
+                <div className="mt-4 p-4 border rounded-md">
+                  <h3 className="text-lg font-semibold mb-4">Add New Course</h3>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded-md"
+                      placeholder="Course Title"
+                      value={newCourse.title}
+                      onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded-md"
+                      placeholder="Course Description"
+                      value={newCourse.description}
+                      onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                    />
+                    <button
+                      onClick={handleAddCourse}
+                      className="px-6 py-2 bg-blue-500 text-white rounded-md"
+                    >
+                      Add Course
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
-
-        {currentSection === 'evalluatorlink' && (
-          <div id="evalluatorlink">
-            <h2 className="text-xl font-bold text-primary mb-4">Course Management Content</h2>
-            {/* Add your course management content here */}
+        {currentSection === 'evaluator' && (
+          <div id="evaluator-link">
+            <h2 className="text-xl font-bold text-primary mb-4">Evaluator Management Content</h2>
+            {/* Add your evaluator management content here */}
           </div>
         )}
-
         {currentSection === 'studentmanagement' && (
-          <div id="studentmanagement">
+          <div id="student-management-link">
             <h2 className="text-xl font-bold text-primary mb-4">Student Management Content</h2>
             {/* Add your student management content here */}
           </div>
         )}
-
         {currentSection === 'profile' && (
-          <div id="profile">
+          <div id="profile-link">
             <h2 className="text-xl font-bold text-primary mb-4">Profile Content</h2>
             {/* Add your profile content here */}
-            
           </div>
         )}
-
         {currentSection === 'signout' && (
-          <div id="signout">
+          <div id="signout-link">
             <h2 className="text-xl font-bold text-primary mb-4">Sign Out Content</h2>
             {/* Add your sign out content here */}
-              
-
-              
-            
           </div>
         )}
       </div>
