@@ -9,6 +9,7 @@ import AssignmentUpload from './Components/AssignmentUpload';
 import AssignmentDetails from './Components/AssignmentDetails'
 import CreateNewTestPage from './Components/CreateNewTestPage';
 // import EvaluatorDashboard from './EvaluatorDashboard';
+import AddModules from './Components/AddModules';
 
 const App = () => {
   const isAuthenticated = () => !!localStorage.getItem('token');
@@ -30,6 +31,7 @@ const App = () => {
         <Route path="/assignmentUpload" element={<AssignmentUpload />} />
         <Route path="/assignmentdetails" element={<AssignmentDetails/>} />
         <Route path="/createnewtest" element={<CreateNewTestPage />} />
+        <Route path="/addmodules/:courseId" element={<AddModules />} />
         {/* <PrivateRoute path="/evaluator/dashboard" element={<EvaluatorDashboard />} /> */}
       </Routes>
       

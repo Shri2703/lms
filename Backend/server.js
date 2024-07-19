@@ -4,6 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const router = express.Router();
+ 
 
 // Configuration
 const app = express();
@@ -27,6 +31,7 @@ mongoose.connect(dbURI, {
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // User Model
 const UserSchema = new mongoose.Schema({
@@ -153,6 +158,151 @@ app.get('/api/auth/checkRole', authMiddleware, async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
+// Course Model
+const CourseSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  modules: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Module'
+  }]
+});
+
+const Course = mongoose.model('Course', CourseSchema);
+
+// Module Model
+const ModuleSchema = new mongoose.Schema({
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
+  files: [{
+    file: {
+      type: String,
+      required: true,
+    },
+  }],
+  mcqs: [{
+    question: {
+      type: String,
+      required: true
+    },
+    options: [{
+      type: String,
+      required: true
+    }],
+    correctAnswerIndex: {
+      type: Number,
+      required: true
+    }
+  }]
+});
+
+const Module = mongoose.model('Module', ModuleSchema);
+
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Create a course
+app.post('/api/courses', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const newCourse = new Course({ title, description });
+    const course = await newCourse.save();
+    res.status(201).json(course);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.get('/api/allcourses', async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// Add a module to a course
+app.post('/api/modules/:courseId', upload.array('files', 10), async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const files = req.files.map(file => ({ file: file.path }));
+
+    const module = new Module({ courseId, files });
+    await module.save();
+
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ msg: 'Course not found' });
+
+    course.modules.push(module._id);
+    await course.save();
+
+    res.status(200).json(module);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+router.get('/api/allcourses', async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.json(courses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Add MCQs to a module
+app.post('/api/modules/:courseId', upload.array('files', 10), async (req, res) => {
+  try {
+    console.log('Request Body:', req.body);
+    console.log('Files:', req.files);
+    
+    const { courseId } = req.params;
+    const { name, description } = req.body;
+    const files = req.files.map(file => ({ file: file.path }));
+
+    const module = new Module({ courseId, name, description, files });
+    await module.save();
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      console.error('Course not found');
+      return res.status(404).json({ msg: 'Course not found' });
+    }
+
+    course.modules.push(module._id);
+    await course.save();
+
+    res.status(200).json(module);
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
+
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -2,24 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBars, FaSearch, FaSun, FaMoon, FaBell, FaArrowDown } from 'react-icons/fa';
 import user from '../Images/user.png';
-import Adminsidenav from './Adminsidenav'; // Ensure this path is correct
+import Adminsidenav from './Adminsidenav';
 import { jwtDecode as jwt_decode } from 'jwt-decode';
+import axios from 'axios';
 
 const AdminDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [username, setUsername] = useState('');
-  const [courseDetails, setCourseDetails] = useState({
-    DBMS: false,
-    OOPS: false,
-    DSA: false,
-  });
-  const [courses, setCourses] = useState([
-    { title: 'DBMS', description: 'Database Management Systems' },
-    { title: 'OOPS', description: 'Object Oriented Programming' },
-    { title: 'DSA', description: 'Data Structures and Algorithms' },
-  ]);
+  const [courseDetails, setCourseDetails] = useState({});
+  const [courses, setCourses] = useState([]);
   const [showAddCourseForm, setShowAddCourseForm] = useState(false);
   const [newCourse, setNewCourse] = useState({ title: '', description: '' });
 
@@ -35,10 +28,21 @@ const AdminDashboard = () => {
     }));
   };
 
-  const handleAddCourse = () => {
-    setCourses([...courses, newCourse]);
-    setShowAddCourseForm(false);
-    setNewCourse({ title: '', description: '' });
+  const handleAddCourse = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:5000/api/courses', newCourse, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setCourses([...courses, response.data]);
+      setShowAddCourseForm(false);
+      setNewCourse({ title: '', description: '' });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const navigate = useNavigate();
@@ -48,14 +52,33 @@ const AdminDashboard = () => {
       const userData = jwt_decode(token);
       setUsername(userData.user.name);
     }
+
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/allcourses', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setCourses(response.data);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+      }
+    };
+
+    fetchCourses();
   }, []);
 
   const handleCreateNewTest = () => {
     navigate('/createnewtest');
   };
 
+  const handleAddModule = (courseId) => {
+    navigate(`/addmodules/${courseId}`);
+  };
+
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basic`}>
+    <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basi`}>
       <Adminsidenav 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -116,33 +139,12 @@ const AdminDashboard = () => {
                   </div>
                   {courseDetails[course.title] && (
                     <div className="mt-4 space-y-4">
-                      <div className="p-4 border rounded-md flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <span> Test</span>
-                          <button className="px-4 py-2 bg-orange-400 text-white rounded-md">Upcoming</button>
-                        </div>
-                        <FaArrowDown />
-                      </div>
-                      <div className="p-4 border rounded-md flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <span>Quiz 2</span>
-                          <button className="px-4 py-2 bg-green-400 text-white rounded-md">Completed</button>
-                        </div>
-                        <FaArrowDown />
-                      </div>
-                      <div className="p-4 border rounded-md flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <span>Quiz 1</span>
-                          <button className="px-4 py-2 bg-green-400 text-white rounded-md">Completed</button>
-                        </div>
-                        <FaArrowDown />
-                      </div>
                       <div className="flex justify-center">
                         <button 
-                          onClick={handleCreateNewTest} 
+                          onClick={() => handleAddModule(course._id)} 
                           className="px-6 py-2 bg-gray-500 text-white rounded-md"
                         >
-                          Create New Test
+                          Add Module
                         </button>
                       </div>
                     </div>

@@ -1,18 +1,19 @@
-const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-    return res.status(403).json({ error: 'No token provided' });
+dotenv.config();
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
   }
-
-  jwt.verify(token, 'secret123', (err, decoded) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to authenticate token' });
-    }
-    req.user = decoded;
-    next();
-  });
 };
 
-module.exports = verifyToken;
+module.exports = connectDB;
