@@ -1,14 +1,17 @@
-Learning Management System (LMS)
+Learning Management System (LMS):
+
 This project is a Learning Management System (LMS) developed using the MERN stack (MongoDB, Express, React, Node.js). The LMS is designed to facilitate the management and delivery of educational courses and training programs. It supports various functionalities such as user registration, course creation, enrollment, and evaluation.
 
-Table of Contents
+Table of Contents:
 Features
 Technologies Used
 Installation
 Usage
 Contributing
 License
-Features
+
+
+Features:
 User registration with customizable fields (name, email, password, role: student or evaluator)
 User authentication and authorization
 Course creation and management
@@ -16,7 +19,9 @@ Enrollment in courses
 Evaluation and grading of students
 Dashboard for students and evaluators
 Responsive design
-Technologies Used
+
+
+Technologies Used:
 MongoDB: NoSQL database for storing user and course data
 Express: Web application framework for Node.js
 React: Front-end library for building user interfaces
