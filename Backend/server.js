@@ -363,110 +363,118 @@ app.get('/api/modules/:courseId', async (req, res) => {
 // Example Express route for handling the POST request
 // Add MCQs to a specific module
 app.post('/api/modules/:moduleId/mcqs', async (req, res) => {
-  const { moduleId } = req.params;
-  const { mcqs } = req.body;
+  const { moduleId } = req.params
+  const { mcqs } = req.body
 
   try {
     if (!mcqs || !Array.isArray(mcqs) || mcqs.length === 0) {
-      return res.status(400).json({ message: 'Invalid MCQ data provided' });
+      return res.status(400).json({ message: 'Invalid MCQ data provided' })
     }
 
     // Use the function to add MCQs to the module
-    const updatedModule = await addMcqsToModule(moduleId, mcqs);
-    
-    res.status(201).json({ message: 'MCQs added successfully', module: updatedModule });
+    const updatedModule = await addMcqsToModule(moduleId, mcqs)
+
+    res
+      .status(201)
+      .json({ message: 'MCQs added successfully', module: updatedModule })
   } catch (error) {
-    console.error('Error adding MCQs:', error);
-    res.status(500).json({ message: 'Server error. Please try again later.' });
+    console.error('Error adding MCQs:', error)
+    res.status(500).json({ message: 'Server error. Please try again later.' })
   }
-});
+})
 
 // Function to add MCQs to a module
 const addMcqsToModule = async (moduleId, mcqs) => {
   try {
     // Find the module by its ID
-    let module = await Module.findById(moduleId);
-    
+    let module = await Module.findById(moduleId)
+
     if (!module) {
-      throw new Error('Module not found');
+      throw new Error('Module not found')
     }
 
     // Add each MCQ to the module's mcqs array
     mcqs.forEach((mcq) => {
-      module.mcqs.push(mcq);
-    });
+      module.mcqs.push(mcq)
+    })
 
     // Save the updated module
-    const updatedModule = await module.save();
-    
-    return updatedModule;
-  } catch (error) {
-    console.error('Error adding MCQs to module:', error);
-    throw error;
-  }
-};
+    const updatedModule = await module.save()
 
+    return updatedModule
+  } catch (error) {
+    console.error('Error adding MCQs to module:', error)
+    throw error
+  }
+}
 
 // Update an MCQ in a specific module
-app.put('/api/modules/:moduleId/mcqs/:mcqIndex', authMiddleware, async (req, res) => {
-  try {
-    const { moduleId, mcqIndex } = req.params;
-    const { question, options, correctAnswerIndex } = req.body;
+app.put(
+  '/api/modules/:moduleId/mcqs/:mcqIndex',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { moduleId, mcqIndex } = req.params
+      const { question, options, correctAnswerIndex } = req.body
 
-    // Find the module by ID
-    const module = await Module.findById(moduleId);
-    if (!module) {
-      return res.status(404).json({ msg: 'Module not found' });
+      // Find the module by ID
+      const module = await Module.findById(moduleId)
+      if (!module) {
+        return res.status(404).json({ msg: 'Module not found' })
+      }
+
+      // Validate the mcqIndex
+      if (mcqIndex < 0 || mcqIndex >= module.mcqs.length) {
+        return res.status(400).json({ msg: 'Invalid MCQ index' })
+      }
+
+      // Update the MCQ
+      module.mcqs[mcqIndex] = { question, options, correctAnswerIndex }
+
+      // Save the updated module
+      await module.save()
+
+      res.status(200).json({ msg: 'MCQ updated successfully', module })
+    } catch (err) {
+      console.error('Error updating MCQ:', err.message)
+      res.status(500).json({ msg: 'Server error', error: err.message })
     }
-
-    // Validate the mcqIndex
-    if (mcqIndex < 0 || mcqIndex >= module.mcqs.length) {
-      return res.status(400).json({ msg: 'Invalid MCQ index' });
-    }
-
-    // Update the MCQ
-    module.mcqs[mcqIndex] = { question, options, correctAnswerIndex };
-
-    // Save the updated module
-    await module.save();
-
-    res.status(200).json({ msg: 'MCQ updated successfully', module });
-  } catch (err) {
-    console.error('Error updating MCQ:', err.message);
-    res.status(500).json({ msg: 'Server error', error: err.message });
   }
-});
+)
 
 // Delete an MCQ from a specific module
-app.delete('/api/modules/:moduleId/mcqs/:mcqIndex', authMiddleware, async (req, res) => {
-  try {
-    const { moduleId, mcqIndex } = req.params;
+app.delete(
+  '/api/modules/:moduleId/mcqs/:mcqIndex',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { moduleId, mcqIndex } = req.params
 
-    // Find the module by ID
-    const module = await Module.findById(moduleId);
-    if (!module) {
-      return res.status(404).json({ msg: 'Module not found' });
+      // Find the module by ID
+      const module = await Module.findById(moduleId)
+      if (!module) {
+        return res.status(404).json({ msg: 'Module not found' })
+      }
+
+      // Validate the mcqIndex
+      if (mcqIndex < 0 || mcqIndex >= module.mcqs.length) {
+        return res.status(400).json({ msg: 'Invalid MCQ index' })
+      }
+
+      // Remove the MCQ from the array
+      module.mcqs.splice(mcqIndex, 1)
+
+      // Save the updated module
+      await module.save()
+
+      res.status(200).json({ msg: 'MCQ deleted successfully', module })
+    } catch (err) {
+      console.error('Error deleting MCQ:', err.message)
+      res.status(500).json({ msg: 'Server error', error: err.message })
     }
-
-    // Validate the mcqIndex
-    if (mcqIndex < 0 || mcqIndex >= module.mcqs.length) {
-      return res.status(400).json({ msg: 'Invalid MCQ index' });
-    }
-
-    // Remove the MCQ from the array
-    module.mcqs.splice(mcqIndex, 1);
-
-    // Save the updated module
-    await module.save();
-
-    res.status(200).json({ msg: 'MCQ deleted successfully', module });
-  } catch (err) {
-    console.error('Error deleting MCQ:', err.message);
-    res.status(500).json({ msg: 'Server error', error: err.message });
   }
-});
+)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
