@@ -78,7 +78,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basi`}>
+    <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basic`}>
       <Adminsidenav 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         {currentSection === 'dashboard' && (
-          <div id="course-link">
+          <div id="course-link" className='bg-light'>
             <h2 className="text-xl font-bold text-primary mb-4">Course Management</h2>
             <div className="space-y-4">
               {courses.map((course, index) => (

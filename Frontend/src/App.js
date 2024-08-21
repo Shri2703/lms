@@ -14,12 +14,7 @@ import AddModules from './Components/AddModules';
 const App = () => {
   const isAuthenticated = () => !!localStorage.getItem('token');
 
-  // const PrivateRoute = ({ element, ...rest }) => (
-  //   <Route
-  //     {...rest}
-  //     element={isAuthenticated() ? element : <Navigate to="/login" />}
-  //   />
-  // );
+
 
   return (
     <Router>
@@ -31,7 +26,7 @@ const App = () => {
         <Route path="/assignmentUpload" element={<AssignmentUpload />} />
         <Route path="/assignmentdetails" element={<AssignmentDetails/>} />
         <Route path="/createnewtest" element={<CreateNewTestPage />} />
-        <Route path="/addmodules/:courseId" element={<AddModules />} />
+        <Route path="/addmodules/:courseId" element={<AddModules/>}/>
         {/* <PrivateRoute path="/evaluator/dashboard" element={<EvaluatorDashboard />} /> */}
       </Routes>
       

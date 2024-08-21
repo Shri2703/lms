@@ -1,183 +1,280 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import axios from 'axios'
 
-const CreateMCQQuestions = () => {
-  const [questions, setQuestions] = useState([]);
-  const [newQuestion, setNewQuestion] = useState('');
-  const [options, setOptions] = useState(['', '', '', '']);
-  const [correctAnswer, setCorrectAnswer] = useState('');
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null);
-  const [quizStarted, setQuizStarted] = useState(false);
-  const [userAnswers, setUserAnswers] = useState([]);
+const CreateMCQQuestions = ({ moduleId }) => {
+  const [questions, setQuestions] = useState([])
+  const [newQuestion, setNewQuestion] = useState('')
+  const [options, setOptions] = useState(['', '', '', ''])
+  const [correctAnswer, setCorrectAnswer] = useState('')
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null)
+  const [quizStarted, setQuizStarted] = useState(false)
+  const [userAnswers, setUserAnswers] = useState([])
 
-  const handleAddQuestion = () => {
+  const handleAddQuestion = async () => {
     const newQuestionObject = {
       question: newQuestion,
       options: [...options],
-      correctAnswer: correctAnswer,
-    };
-    setQuestions([...questions, newQuestionObject]);
-    setNewQuestion('');
-    setOptions(['', '', '', '']);
-    setCorrectAnswer('');
-  };
+      correctAnswerIndex: options.indexOf(correctAnswer),
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/modules/${moduleId}/mcqs`,
+        { mcqs: [newQuestionObject] } // Payload as expected by the backend
+      )
+      console.log('Question added:', response.data)
+
+      setQuestions([...questions, newQuestionObject])
+      setNewQuestion('')
+      setOptions(['', '', '', ''])
+      setCorrectAnswer('')
+    } catch (error) {
+      console.error(
+        'Error adding question:',
+        error.response?.data || error.message
+      )
+    }
+  }
+
 
   const handleEditQuestion = (index) => {
-    setSelectedQuestionIndex(index);
-    setNewQuestion(questions[index].question);
-    setOptions([...questions[index].options]);
-    setCorrectAnswer(questions[index].correctAnswer);
-  };
+    setSelectedQuestionIndex(index)
+    setNewQuestion(questions[index].question)
+    setOptions([...questions[index].options])
+    setCorrectAnswer(
+      questions[index].options[questions[index].correctAnswerIndex]
+    )
+  }
 
-  const handleUpdateQuestion = () => {
+  const handleUpdateQuestion = async () => {
     if (selectedQuestionIndex !== null) {
       const updatedQuestionObject = {
         question: newQuestion,
         options: [...options],
-        correctAnswer: correctAnswer,
-      };
-      const updatedQuestions = [...questions];
-      updatedQuestions[selectedQuestionIndex] = updatedQuestionObject;
-      setQuestions(updatedQuestions);
-      setSelectedQuestionIndex(null);
-      setNewQuestion('');
-      setOptions(['', '', '', '']);
-      setCorrectAnswer('');
-    }
-  };
+        correctAnswerIndex: options.indexOf(correctAnswer),
+      }
 
-  const handleDeleteQuestion = (index) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions.splice(index, 1);
-    setQuestions(updatedQuestions);
-  };
+      try {
+        const response = await axios.put(
+          `http://localhost:5000/api/modules/${moduleId}/mcqs/${selectedQuestionIndex}`,
+          updatedQuestionObject
+        )
+        console.log('Question updated:', response.data)
+
+        const updatedQuestions = [...questions]
+        updatedQuestions[selectedQuestionIndex] = updatedQuestionObject
+        setQuestions(updatedQuestions)
+        setSelectedQuestionIndex(null)
+        setNewQuestion('')
+        setOptions(['', '', '', ''])
+        setCorrectAnswer('')
+      } catch (error) {
+        console.error('Error updating question:', error)
+      }
+    }
+  }
+
+  const handleDeleteQuestion = async (index) => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/modules/${moduleId}/mcqs/${index}`
+      )
+      console.log('Question deleted')
+
+      const updatedQuestions = [...questions]
+      updatedQuestions.splice(index, 1)
+      setQuestions(updatedQuestions)
+    } catch (error) {
+      console.error('Error deleting question:', error)
+    }
+  }
 
   const handlePostTest = () => {
-    setQuizStarted(true);
-    setUserAnswers(new Array(questions.length).fill(''));
-  };
+    setQuizStarted(true)
+    setUserAnswers(new Array(questions.length).fill(''))
+  }
 
   const handleAnswerChange = (index, answer) => {
-    const updatedUserAnswers = [...userAnswers];
-    updatedUserAnswers[index] = answer;
-    setUserAnswers(updatedUserAnswers);
-  };
+    const updatedUserAnswers = [...userAnswers]
+    updatedUserAnswers[index] = answer
+    setUserAnswers(updatedUserAnswers)
+  }
 
-  const renderQuiz = () => (
-    <div>
-      <h3 className="text-xl font-semibold mb-2">Quiz</h3>
-      {questions.map((question, index) => (
-        <div key={index} className="mb-4">
-          <h4 className="font-bold">{question.question}</h4>
-          {question.options.map((option, optIndex) => (
-            <div key={optIndex}>
-              <label>
-                <input
-                  type="radio"
-                  name={`question-${index}`}
-                  value={option}
-                  checked={userAnswers[index] === option}
-                  onChange={() => handleAnswerChange(index, option)}
-                />
-                {option}
-              </label>
-            </div>
-          ))}
-        </div>
-      ))}
-      <button
-        onClick={() => console.log('User answers: ', userAnswers)}
-        className="bg-green-500 text-white rounded-md px-4 py-2"
-      >
-        Submit Quiz
-      </button>
-    </div>
-  );
+  const handleSubmitQuiz = () => {
+    let score = 0
+    for (let i = 0; i < questions.length; i++) {
+      if (
+        questions[i].options.indexOf(userAnswers[i]) ===
+        questions[i].correctAnswerIndex
+      ) {
+        score++
+      }
+    }
+    alert(`Quiz completed! Your score: ${score} out of ${questions.length}`)
+  }
 
   return (
-    <div className="container mx-auto mt-8">
-      <h2 className="text-2xl font-bold mb-4">MCQ Quiz Questions</h2>
-      {quizStarted ? (
-        renderQuiz()
-      ) : (
-        <div className="flex">
-          {/* First main div for adding and editing questions */}
-          <div className="w-1/2 pr-4">
-            <h3 className="text-xl font-semibold mb-2">Add/Edit Question</h3>
-            <textarea
-              className="border border-gray-300 rounded-md p-2 w-full mb-2"
-              placeholder="Enter your question..."
+    <div>
+      {!quizStarted ? (
+        <div>
+          <h3 className='text-lg font-semibold mb-4'>MCQ Section</h3>
+          <div className='mb-4'>
+            <label className='block text-primary font-bold mb-2'>
+              Question:
+            </label>
+            <input
+              type='text'
+              className='border rounded-md px-4 py-2 w-full'
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
             />
+          </div>
+          <div className='mb-4'>
+            <label className='block text-primary font-bold mb-2'>
+              Options:
+            </label>
             {options.map((option, index) => (
-              <input
-                key={index}
-                type="text"
-                className="border border-gray-300 rounded-md p-2 w-full mb-2"
-                placeholder={`Option ${index + 1}`}
-                value={option}
-                onChange={(e) => {
-                  const updatedOptions = [...options];
-                  updatedOptions[index] = e.target.value;
-                  setOptions(updatedOptions);
-                }}
-              />
+              <div key={index} className='flex items-center mb-2'>
+                <input
+                  type='text'
+                  className='border rounded-md px-4 py-2 w-full'
+                  value={option}
+                  onChange={(e) =>
+                    setOptions(
+                      options.map((opt, i) =>
+                        i === index ? e.target.value : opt
+                      )
+                    )
+                  }
+                />
+                <button
+                  className='ml-2 px-3 py-1 bg-red-500 text-white rounded-md'
+                  onClick={() =>
+                    setOptions(options.filter((opt, i) => i !== index))
+                  }
+                >
+                  Remove
+                </button>
+              </div>
             ))}
-            <div className="flex items-center mb-2">
-              <span className="mr-2">Correct Answer:</span>
-              <select
-                className="border border-gray-300 rounded-md p-2"
-                value={correctAnswer}
-                onChange={(e) => setCorrectAnswer(e.target.value)}
-              >
-                {options.map((option, index) => (
-                  <option key={index} value={option}>{`Option ${index + 1}`}</option>
-                ))}
-              </select>
-            </div>
-            {selectedQuestionIndex === null ? (
+            <button
+              className='mt-2 px-4 py-2 bg-gray-500 text-white rounded-md'
+              onClick={() => setOptions([...options, ''])}
+            >
+              Add Option
+            </button>
+          </div>
+          <div className='mb-4'>
+            <label className='block text-primary font-bold mb-2'>
+              Correct Answer:
+            </label>
+            <select
+              className='border rounded-md px-4 py-2 w-full'
+              value={correctAnswer}
+              onChange={(e) => setCorrectAnswer(e.target.value)}
+            >
+              <option value=''>Select Correct Answer</option>
+              {options.map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className='flex space-x-4'>
+            <button
+              className='bg-blue-500 text-white rounded-md px-4 py-2'
+              onClick={
+                selectedQuestionIndex === null
+                  ? handleAddQuestion
+                  : handleUpdateQuestion
+              }
+            >
+              {selectedQuestionIndex === null
+                ? 'Add Question'
+                : 'Update Question'}
+            </button>
+            {selectedQuestionIndex !== null && (
               <button
-                onClick={handleAddQuestion}
-                className="bg-blue-500 text-white rounded-md px-4 py-2 mr-2"
+                className='bg-red-500 text-white rounded-md px-4 py-2'
+                onClick={() => {
+                  setSelectedQuestionIndex(null)
+                  setNewQuestion('')
+                  setOptions(['', '', '', ''])
+                  setCorrectAnswer('')
+                }}
               >
-                Add Question
-              </button>
-            ) : (
-              <button
-                onClick={handleUpdateQuestion}
-                className="bg-blue-500 text-white rounded-md px-4 py-2 mr-2"
-              >
-                Update Question
+                Cancel Edit
               </button>
             )}
           </div>
-          {/* Second main div for displaying questions */}
-          <div className="w-1/2 pl-4">
-            <h3 className="text-xl font-semibold mb-2">Questions List</h3>
-            <ul className="list-disc pl-4">
-              {questions.map((question, index) => (
-                <li
-                  key={index}
-                  className="cursor-pointer text-blue-500 mb-2"
-                  onClick={() => handleEditQuestion(index)}
-                >
-                  {question.question}
-                </li>
-              ))}
-            </ul>
+          <div className='mt-4'>
+            {questions.map((q, index) => (
+              <div key={index} className='mb-4'>
+                <div className='font-bold text-primary'>{q.question}</div>
+                <ul className='ml-4 list-disc'>
+                  {q.options.map((option, i) => (
+                    <li key={i} className='text-primary'>
+                      {option}
+                    </li>
+                  ))}
+                </ul>
+                <div className='mt-2 flex space-x-2'>
+                  <button
+                    className='px-3 py-1 bg-gray-500 text-white rounded-md'
+                    onClick={() => handleEditQuestion(index)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className='px-3 py-1 bg-red-500 text-white rounded-md'
+                    onClick={() => handleDeleteQuestion(index)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+          <button
+            className='bg-green-500 text-white rounded-md px-4 py-2 mt-4'
+            onClick={handlePostTest}
+          >
+            Start Quiz
+          </button>
+        </div>
+      ) : (
+        <div>
+          <h3 className='text-lg font-semibold mb-4'>MCQ Quiz</h3>
+          {questions.map((q, index) => (
+            <div key={index} className='mb-4'>
+              <div className='font-bold text-primary'>{q.question}</div>
+              <div className='ml-4'>
+                {q.options.map((option, i) => (
+                  <label key={i} className='block text-primary'>
+                    <input
+                      type='radio'
+                      name={`question-${index}`}
+                      value={option}
+                      checked={userAnswers[index] === option}
+                      onChange={() => handleAnswerChange(index, option)}
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button
+            className='bg-blue-500 text-white rounded-md px-4 py-2 mt-4'
+            onClick={handleSubmitQuiz}
+          >
+            Submit Quiz
+          </button>
         </div>
       )}
-      {!quizStarted && questions.length > 0 && (
-        <button
-          onClick={handlePostTest}
-          className="bg-green-500 text-white rounded-md px-4 py-2 mt-4"
-        >
-          Post Test
-        </button>
-      )}
     </div>
-  );
-};
+  )
+}
 
-export default CreateMCQQuestions;
+export default CreateMCQQuestions
