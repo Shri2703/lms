@@ -10,11 +10,12 @@ const path = require('path')
 // Configuration
 const app = express()
 const PORT = 5000
+
 const jwtSecret = 'secret123' // Replace with your actual secret
 
 // MongoDB connection
 const dbURI =
-  'mongodb+srv://poornashri2703:QQJpDHJJce4RcH1a@cluster0.yp4pylu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+  'mongodb+srv://poornashri2703:envidoxlsm@cluster0.secnn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 
 mongoose
   .connect(dbURI, {
