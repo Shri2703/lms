@@ -1,3 +1,4 @@
+
 const express = require('express')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
@@ -359,6 +360,45 @@ app.get('/api/modules/:courseId', async (req, res) => {
   }
 })
 
+// Update a course by ID
+app.put('/api/courses/:id', async (req, res) => {
+  const { id } = req.params
+  const { title, description } = req.body
+
+  try {
+    const updatedCourse = await Course.findByIdAndUpdate(
+      id,
+      { title, description },
+      { new: true, runValidators: true }
+    )
+
+    if (!updatedCourse) {
+      return res.status(404).json({ msg: 'Course not found' })
+    }
+
+    res.json(updatedCourse)
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' })
+  }
+})
+
+// Delete a course by ID
+app.delete('/api/courses/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const deletedCourse = await Course.findByIdAndDelete(id)
+
+    if (!deletedCourse) {
+      return res.status(404).json({ msg: 'Course not found' })
+    }
+
+    res.json({ msg: 'Course deleted successfully' })
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' })
+  }
+})
+
 // Add MCQ to a specific module
 // Add MCQs to a module
 // Example Express route for handling the POST request
@@ -444,37 +484,39 @@ app.put(
 )
 
 // Delete an MCQ from a specific module
+// Delete an MCQ from a specific module
 app.delete(
   '/api/modules/:moduleId/mcqs/:mcqIndex',
   authMiddleware,
   async (req, res) => {
     try {
-      const { moduleId, mcqIndex } = req.params
+      const { moduleId, mcqIndex } = req.params;
 
       // Find the module by ID
-      const module = await Module.findById(moduleId)
+      const module = await Module.findById(moduleId);
       if (!module) {
-        return res.status(404).json({ msg: 'Module not found' })
+        return res.status(404).json({ msg: 'Module not found' });
       }
 
       // Validate the mcqIndex
       if (mcqIndex < 0 || mcqIndex >= module.mcqs.length) {
-        return res.status(400).json({ msg: 'Invalid MCQ index' })
+        return res.status(400).json({ msg: 'Invalid MCQ index' });
       }
 
-      // Remove the MCQ from the array
-      module.mcqs.splice(mcqIndex, 1)
+      // Remove the MCQ from the module's mcqs array
+      module.mcqs.splice(mcqIndex, 1);
 
       // Save the updated module
-      await module.save()
+      await module.save();
 
-      res.status(200).json({ msg: 'MCQ deleted successfully', module })
+      res.status(200).json({ msg: 'MCQ deleted successfully', module });
     } catch (err) {
-      console.error('Error deleting MCQ:', err.message)
-      res.status(500).json({ msg: 'Server error', error: err.message })
+      console.error('Error deleting MCQ:', err.message);
+      res.status(500).json({ msg: 'Server error', error: err.message });
     }
   }
-)
+);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
