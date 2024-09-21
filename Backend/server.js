@@ -173,6 +173,30 @@ app.get('/api/auth/checkRole', authMiddleware, async (req, res) => {
     res.status(500).json({ msg: 'Server error' })
   }
 })
+app.get('/api/users/students', async (req, res) => {
+  try {
+    const students = await User.find({ role: 'student' })
+    console.log('Fetched Students:', students) // Log fetched students
+    res.json(students)
+  } catch (err) {
+    console.error('Error fetching students:', err.message)
+    res.status(500).send('Server Error')
+  }
+})
+
+app.get('/api/users/evaluators', async (req, res) => {
+  try {
+    const evaluators = await User.find({ role: 'evaluator' })
+    console.log('Fetched Evaluators:', evaluators) // Log fetched evaluators
+    res.json(evaluators)
+  } catch (err) {
+    console.error('Error fetching evaluators:', err.message)
+    res.status(500).send('Server Error')
+  }
+})
+
+
+
 
 // File Model
 const FileSchema = new mongoose.Schema({

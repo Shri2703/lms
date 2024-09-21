@@ -20,6 +20,8 @@ const AdminDashboard = () => {
   const [username, setUsername] = useState('')
   const [courseDetails, setCourseDetails] = useState({})
   const [courses, setCourses] = useState([])
+  const [evaluators, setEvaluators] = useState([])
+  const [students, setStudents] = useState([])
   const [showAddCourseForm, setShowAddCourseForm] = useState(false)
   const [newCourse, setNewCourse] = useState({ title: '', description: '' })
   const [showUpdateCourseForm, setShowUpdateCourseForm] = useState(false)
@@ -122,7 +124,41 @@ const AdminDashboard = () => {
       }
     }
 
+    const fetchEvaluators = async () => {
+      try {
+        const response = await axios.get(
+          'http://localhost:5000/api/users/evaluators',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        setEvaluators(response.data)
+      } catch (err) {
+        console.error('Error fetching evaluators:', err)
+      }
+    }
+
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get(
+          'http://localhost:5000/api/users/students',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        setStudents(response.data)
+      } catch (err) {
+        console.error('Error fetching students:', err)
+      }
+    }
+
     fetchCourses()
+    fetchEvaluators()
+    fetchStudents()
   }, [])
 
   const handleCreateNewTest = () => {
@@ -240,21 +276,24 @@ const AdminDashboard = () => {
               </div>
               {showAddCourseForm && (
                 <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-4'>Add New Course</h3>
-                  <div className='space-y-4'>
+                  <h3 className='text-lg font-semibold mb-2'>Add New Course</h3>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>Title</label>
                     <input
                       type='text'
-                      className='w-full p-2 border rounded-md'
-                      placeholder='Course Title'
                       value={newCourse.title}
                       onChange={(e) =>
                         setNewCourse({ ...newCourse, title: e.target.value })
                       }
+                      className='w-full px-3 py-2 border rounded-md'
                     />
+                  </div>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>
+                      Description
+                    </label>
                     <input
                       type='text'
-                      className='w-full p-2 border rounded-md'
-                      placeholder='Course Description'
                       value={newCourse.description}
                       onChange={(e) =>
                         setNewCourse({
@@ -262,33 +301,39 @@ const AdminDashboard = () => {
                           description: e.target.value,
                         })
                       }
+                      className='w-full px-3 py-2 border rounded-md'
                     />
-                    <button
-                      onClick={handleAddCourse}
-                      className='px-6 py-2 bg-blue-500 text-white rounded-md'
-                    >
-                      Add Course
-                    </button>
                   </div>
+                  <button
+                    onClick={handleAddCourse}
+                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                  >
+                    Add Course
+                  </button>
                 </div>
               )}
               {showUpdateCourseForm && (
                 <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-4'>Update Course</h3>
-                  <div className='space-y-4'>
+                  <h3 className='text-lg font-semibold mb-2'>
+                    Update Course: {selectedCourse?.title}
+                  </h3>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>Title</label>
                     <input
                       type='text'
-                      className='w-full p-2 border rounded-md'
-                      placeholder='Course Title'
                       value={newCourse.title}
                       onChange={(e) =>
                         setNewCourse({ ...newCourse, title: e.target.value })
                       }
+                      className='w-full px-3 py-2 border rounded-md'
                     />
+                  </div>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>
+                      Description
+                    </label>
                     <input
                       type='text'
-                      className='w-full p-2 border rounded-md'
-                      placeholder='Course Description'
                       value={newCourse.description}
                       onChange={(e) =>
                         setNewCourse({
@@ -296,16 +341,83 @@ const AdminDashboard = () => {
                           description: e.target.value,
                         })
                       }
+                      className='w-full px-3 py-2 border rounded-md'
                     />
-                    <button
-                      onClick={handleUpdateCourse}
-                      className='px-6 py-2 bg-yellow-500 text-white rounded-md'
-                    >
-                      Update Course
-                    </button>
                   </div>
+                  <button
+                    onClick={handleUpdateCourse}
+                    className='px-6 py-2 bg-yellow-500 text-white rounded-md'
+                  >
+                    Update Course
+                  </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+        {currentSection === 'evaluator' && (
+          <div id='evaluator-link' className='bg-light'>
+            <h2 className='text-xl font-bold text-primary mb-4'>
+              Evaluator Management
+            </h2>
+            <div className='space-y-4'>
+              {evaluators.map((evaluator, index) => (
+                <div key={index} className='p-4 border rounded-md'>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <h3 className='text-lg font-semibold'>
+                        {evaluator.name}
+                      </h3>
+                      <p>{evaluator.email}</p>
+                    </div>
+                    <div className='flex space-x-2'>
+                      <button className='px-4 py-2 bg-yellow-500 text-white rounded-md'>
+                        Update
+                      </button>
+                      <button className='px-4 py-2 bg-red-500 text-white rounded-md'>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className='flex justify-center mt-6'>
+                <button className='px-6 py-2 bg-green-500 text-white rounded-md'>
+                  Add Evaluator
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {currentSection === 'students' && (
+          <div id='student-link' className='bg-light'>
+            <h2 className='text-xl font-bold text-primary mb-4'>
+              Student Management
+            </h2>
+            <div className='space-y-4'>
+              {students.map((student, index) => (
+                <div key={index} className='p-4 border rounded-md'>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <h3 className='text-lg font-semibold'>{student.name}</h3>
+                      <p>{student.email}</p>
+                    </div>
+                    <div className='flex space-x-2'>
+                      <button className='px-4 py-2 bg-yellow-500 text-white rounded-md'>
+                        Update
+                      </button>
+                      <button className='px-4 py-2 bg-red-500 text-white rounded-md'>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className='flex justify-center mt-6'>
+                <button className='px-6 py-2 bg-green-500 text-white rounded-md'>
+                  Add Student
+                </button>
+              </div>
             </div>
           </div>
         )}
