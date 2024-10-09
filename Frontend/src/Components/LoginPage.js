@@ -51,11 +51,11 @@ const LoginPage = () => {
         console.log('Role check response:', roleCheckResponse);
 
         // Redirect based on verified user role from backend
-        if (roleCheckResponse.data.role === 'Admin') {
+        if (roleCheckResponse.data.role === 'admin') {
           navigate('/admindashboard');
-        } else if (roleCheckResponse.data.role === 'Student') {
+        } else if (roleCheckResponse.data.role === 'student') {
           navigate('/studentdashboard');
-        } else if (roleCheckResponse.data.role === 'Evaluator') {
+        } else if (roleCheckResponse.data.role === 'evaluator') {
           navigate('/evaluatordashboard');
         } else {
           setError('Unknown user role');

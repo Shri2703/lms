@@ -85,9 +85,9 @@ const Signup = () => {
                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-pink-100 focus:outline-none focus:ring-2 focus:ring-maroon"
               >
                 <option value="">Select the role</option>
-                <option value="Student">Student</option>
-                <option value="Admin">Admin</option>
-                <option value="Evaluator">Evaluator</option>
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+                <option value="evaluator">Evaluator</option>
               </select>
             </div>
             <div className="relative mb-4">

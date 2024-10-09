@@ -26,6 +26,100 @@ const AdminDashboard = () => {
   const [newCourse, setNewCourse] = useState({ title: '', description: '' })
   const [showUpdateCourseForm, setShowUpdateCourseForm] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState(null)
+  const [showAddEvaluatorForm, setShowAddEvaluatorForm] = useState(false)
+  const [newEvaluator, setNewEvaluator] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'evaluator',
+  })
+  const [showAddStudentForm, setShowAddStudentForm] = useState(false)
+  const [newStudent, setNewStudent] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'student',
+  })
+
+  const fetchStudents = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(
+        'http://localhost:5000/api/users/students',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      setStudents(response.data)
+    } catch (err) {
+      console.error('Error fetching students:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchStudents()
+  }, [])
+
+  const handleAddStudent = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post('http://localhost:5000/api/users/register', newStudent, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      setShowAddStudentForm(false)
+      setNewStudent({ name: '', email: '', password: '', role: 'student' })
+      fetchStudents() // Refresh student list after adding
+    } catch (err) {
+      console.error('Error adding student:', err)
+    }
+  }
+
+  const fetchEvaluators = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(
+        'http://localhost:5000/api/users/evaluators',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      setEvaluators(response.data)
+    } catch (err) {
+      console.error('Error fetching evaluators:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchEvaluators()
+  }, [])
+
+  const handleAddEvaluator = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post(
+        'http://localhost:5000/api/users/register',
+        newEvaluator,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      setShowAddEvaluatorForm(false)
+      setNewEvaluator({ name: '', email: '', password: '', role: 'evaluator' })
+      fetchEvaluators() // Refresh the evaluator list after adding
+    } catch (err) {
+      console.error('Error adding evaluator:', err)
+    }
+  }
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
@@ -232,7 +326,7 @@ const AdminDashboard = () => {
                     <div className='flex space-x-2'>
                       <button
                         onClick={() => toggleCourseDetails(course.title)}
-                        className='px-4 py-2 bg-blue-500 text-white rounded-md'
+                        className='px-4 py-2 bg-primary text-white rounded-md'
                       >
                         {courseDetails[course.title]
                           ? 'View Less'
@@ -257,7 +351,7 @@ const AdminDashboard = () => {
                         </button>
                         <button
                           onClick={() => handleAddModule(course._id)}
-                          className='px-6 py-2 bg-gray-500 text-white rounded-md'
+                          className='px-6 py-2 bg-primary text-white rounded-md'
                         >
                           Add Module
                         </button>
@@ -269,7 +363,7 @@ const AdminDashboard = () => {
               <div className='flex justify-center mt-6'>
                 <button
                   onClick={() => setShowAddCourseForm(!showAddCourseForm)}
-                  className='px-6 py-2 bg-green-500 text-white rounded-md'
+                  className='px-6 py-2 bg-primary text-white rounded-md'
                 >
                   Add Course
                 </button>
@@ -306,7 +400,7 @@ const AdminDashboard = () => {
                   </div>
                   <button
                     onClick={handleAddCourse}
-                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                    className='px-6 py-2 bg-primary text-white rounded-md'
                   >
                     Add Course
                   </button>
@@ -346,7 +440,7 @@ const AdminDashboard = () => {
                   </div>
                   <button
                     onClick={handleUpdateCourse}
-                    className='px-6 py-2 bg-yellow-500 text-white rounded-md'
+                    className='px-6 py-2 bg-primary text-white rounded-md'
                   >
                     Update Course
                   </button>
@@ -360,64 +454,168 @@ const AdminDashboard = () => {
             <h2 className='text-xl font-bold text-primary mb-4'>
               Evaluator Management
             </h2>
-            <div className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {evaluators.map((evaluator, index) => (
-                <div key={index} className='p-4 border rounded-md'>
-                  <div className='flex items-center justify-between'>
-                    <div>
-                      <h3 className='text-lg font-semibold'>
-                        {evaluator.name}
-                      </h3>
-                      <p>{evaluator.email}</p>
-                    </div>
-                    <div className='flex space-x-2'>
-                      <button className='px-4 py-2 bg-yellow-500 text-white rounded-md'>
-                        Update
-                      </button>
-                      <button className='px-4 py-2 bg-red-500 text-white rounded-md'>
-                        Delete
-                      </button>
-                    </div>
+                <div key={index} className='p-4 border rounded-md shadow-md'>
+                  <div className='flex flex-col items-start'>
+                    <h3 className='text-lg font-semibold'>{evaluator.name}</h3>
+                    <p>{evaluator.email}</p>
                   </div>
                 </div>
               ))}
               <div className='flex justify-center mt-6'>
-                <button className='px-6 py-2 bg-green-500 text-white rounded-md'>
+                <button
+                  className='px-6 py-2 bg-primary text-white rounded-md'
+                  onClick={() => setShowAddEvaluatorForm(!showAddEvaluatorForm)}
+                >
                   Add Evaluator
                 </button>
               </div>
+
+              {showAddEvaluatorForm && (
+                <div className='mt-4 p-4 border rounded-md'>
+                  <h3 className='text-lg font-semibold mb-2'>
+                    Add New Evaluator
+                  </h3>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>
+                      Username
+                    </label>
+                    <input
+                      type='text'
+                      value={newEvaluator.name}
+                      onChange={(e) =>
+                        setNewEvaluator({
+                          ...newEvaluator,
+                          name: e.target.value,
+                        })
+                      }
+                      className='w-full px-3 py-2 border rounded-md'
+                    />
+                  </div>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>Email</label>
+                    <input
+                      type='email'
+                      value={newEvaluator.email}
+                      onChange={(e) =>
+                        setNewEvaluator({
+                          ...newEvaluator,
+                          email: e.target.value,
+                        })
+                      }
+                      className='w-full px-3 py-2 border rounded-md'
+                    />
+                  </div>
+                  <div className='mb-2'>
+                    <label className='block text-sm font-medium'>
+                      Password
+                    </label>
+                    <input
+                      type='password'
+                      value={newEvaluator.password}
+                      onChange={(e) =>
+                        setNewEvaluator({
+                          ...newEvaluator,
+                          password: e.target.value,
+                        })
+                      }
+                      className='w-full px-3 py-2 border rounded-md'
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddEvaluator}
+                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                  >
+                    Add Evaluator
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
-        {currentSection === 'students' && (
-          <div id='student-link' className='bg-light'>
+        {currentSection === 'studentmanagement' && (
+          <div id='student-management-link' className='bg-light'>
             <h2 className='text-xl font-bold text-primary mb-4'>
               Student Management
             </h2>
-            <div className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {students.map((student, index) => (
-                <div key={index} className='p-4 border rounded-md'>
-                  <div className='flex items-center justify-between'>
+                <div key={index} className='p-4 border rounded-md  shadow-md '>
+                  <div className='flex flex-col items-start'>
                     <div>
                       <h3 className='text-lg font-semibold'>{student.name}</h3>
                       <p>{student.email}</p>
                     </div>
-                    <div className='flex space-x-2'>
-                      <button className='px-4 py-2 bg-yellow-500 text-white rounded-md'>
-                        Update
-                      </button>
-                      <button className='px-4 py-2 bg-red-500 text-white rounded-md'>
-                        Delete
-                      </button>
-                    </div>
                   </div>
                 </div>
               ))}
               <div className='flex justify-center mt-6'>
-                <button className='px-6 py-2 bg-green-500 text-white rounded-md'>
+                <button
+                  className='px-6 py-2 bg-primary text-white rounded-md'
+                  onClick={() => setShowAddStudentForm(!showAddStudentForm)}
+                >
                   Add Student
                 </button>
               </div>
+
+              {showAddStudentForm && (
+                <div className='mt-4 p-4 border rounded-md'>
+                  <h3 className='text-lg font-semibold mb-2'>
+                    Add New Student
+                  </h3>
+                  <div className='space-y-4'>
+                    <div>
+                      <label className='block mb-1'>Name</label>
+                      <input
+                        type='text'
+                        className='w-full px-4 py-2 border rounded-md'
+                        value={newStudent.name}
+                        onChange={(e) =>
+                          setNewStudent({ ...newStudent, name: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block mb-1'>Email</label>
+                      <input
+                        type='email'
+                        className='w-full px-4 py-2 border rounded-md'
+                        value={newStudent.email}
+                        onChange={(e) =>
+                          setNewStudent({
+                            ...newStudent,
+                            email: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block mb-1'>Password</label>
+                      <input
+                        type='password'
+                        className='w-full px-4 py-2 border rounded-md'
+                        value={newStudent.password}
+                        onChange={(e) =>
+                          setNewStudent({
+                            ...newStudent,
+                            password: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddStudent}
+                      className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                    >
+                      Add Student
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
