@@ -618,10 +618,17 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
+    enum: ['admin', 'student', 'evaluator'], // Specify possible roles
+  },
+  courseIds: {
+    type: [mongoose.Schema.Types.ObjectId], // Store an array of ObjectIds referencing the courses
+    ref: 'Course',
+    default: [], // Initialize as an empty array
   },
 })
 
 const User = mongoose.model('User', UserSchema)
+
 
 // Register Route
 app.post('/api/users/register', async (req, res) => {
@@ -1089,6 +1096,55 @@ app.delete(
   }
 )
 
+
+// Get all evaluators
+app.get('/api/evaluators', async (req, res) => {
+  try {
+    const evaluators = await User.find({ role: 'evaluator' });
+    res.status(200).json(evaluators);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching evaluators', error });
+  }
+});
+
+// Get all courses
+app.get('/api/courses', async (req, res) => {
+  try {
+    const courses = await Course.find(); // Replace `Course` with your actual model name
+    res.status(200).json(courses);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching courses', error });
+  }
+});
+
+// Assign course to evaluator
+// POST route for assigning a course to an evaluator or student
+app.post('/api/evaluators/assign-course', async (req, res) => {
+  const { evaluatorId, courseId } = req.body;
+
+  try {
+    // Find the evaluator or student by ID
+    const evaluator = await User.findById(evaluatorId);
+
+    if (!evaluator) {
+      return res.status(404).json({ message: 'Evaluator not found' });
+    }
+
+    // Check if the courseId is already in the courseIds array
+    if (!evaluator.courseIds.includes(courseId)) {
+      // Add the course ID to the user's courseIds array
+      evaluator.courseIds.push(courseId);
+      await evaluator.save();
+    }
+
+    res.status(200).json({ message: 'Course assigned successfully', evaluator });
+  } catch (error) {
+    console.error('Error while assigning course:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`) 
 })

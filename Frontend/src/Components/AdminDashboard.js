@@ -41,6 +41,77 @@ const AdminDashboard = () => {
     role: 'student',
   })
 
+  const [showCourseAssignForm, setShowCourseAssignForm] = useState(false)
+  const [selectedEvaluatorId, setSelectedEvaluatorId] = useState('')
+  const [selectedCourseId, setSelectedCourseId] = useState('')
+  
+
+  // Fetch evaluators and courses on component mount
+  
+  useEffect(() => {
+    const fetchEvaluators = async () => {
+      const response = await fetch('/api/evaluators')
+      if (!response.ok) {
+        alert('Failed to fetch evaluators')
+        return
+      }
+      const data = await response.json()
+      setEvaluators(data)
+    }
+
+    const fetchCourses = async () => {
+      const response = await fetch('/api/allcourses')
+      if (!response.ok) {
+        alert('Failed to fetch courses')
+        return
+      }
+      const data = await response.json()
+      setCourses(data)
+    }
+
+    fetchEvaluators()
+    fetchCourses()
+  }, [])
+
+
+  const handleAssignCourse = async () => {
+    if (!selectedEvaluatorId || !selectedCourseId) {
+      alert('Please select an evaluator and a course.')
+      return
+    }
+
+    try {
+      const response = await fetch(
+        'http://localhost:3000/api/evaluators/assign-course',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            evaluatorId: selectedEvaluatorId,
+            courseId: selectedCourseId,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok) {
+        alert('Course assigned successfully.')
+        setShowCourseAssignForm(false)
+      } else {
+        alert(`Error: ${data.message}`)
+      }
+    } catch (error) {
+      alert('Error assigning course. Please try again.')
+    }
+  }
+
+
+
+  
+
   const fetchStudents = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -312,12 +383,21 @@ const AdminDashboard = () => {
         </div>
         {currentSection === 'dashboard' && (
           <div id='course-link' className='bg-light'>
-            <h2 className='text-xl font-bold text-primary mb-4'>
-              Course Management
-            </h2>
-            <div className='space-y-4'>
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className='text-xl font-bold text-primary'>
+                Course Management
+              </h2>
+              <button
+                onClick={() => setShowAddCourseForm(!showAddCourseForm)}
+                className='px-6 py-2 bg-primary text-white rounded-md'
+              >
+                Add Course
+              </button>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {courses.map((course, index) => (
-                <div key={index} className='p-4 border rounded-md'>
+                <div key={index} className='p-4 border rounded-md shadow-md'>
                   <div className='flex items-center justify-between'>
                     <div>
                       <h3 className='text-lg font-semibold'>{course.title}</h3>
@@ -360,100 +440,111 @@ const AdminDashboard = () => {
                   )}
                 </div>
               ))}
-              <div className='flex justify-center mt-6'>
+            </div>
+
+            {showAddCourseForm && (
+              <div className='mt-4 p-4 border rounded-md'>
+                <h3 className='text-lg font-semibold mb-2'>Add New Course</h3>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>Title</label>
+                  <input
+                    type='text'
+                    value={newCourse.title}
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, title: e.target.value })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
+                </div>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>
+                    Description
+                  </label>
+                  <input
+                    type='text'
+                    value={newCourse.description}
+                    onChange={(e) =>
+                      setNewCourse({
+                        ...newCourse,
+                        description: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
+                </div>
                 <button
-                  onClick={() => setShowAddCourseForm(!showAddCourseForm)}
+                  onClick={handleAddCourse}
                   className='px-6 py-2 bg-primary text-white rounded-md'
                 >
                   Add Course
                 </button>
               </div>
-              {showAddCourseForm && (
-                <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-2'>Add New Course</h3>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>Title</label>
-                    <input
-                      type='text'
-                      value={newCourse.title}
-                      onChange={(e) =>
-                        setNewCourse({ ...newCourse, title: e.target.value })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>
-                      Description
-                    </label>
-                    <input
-                      type='text'
-                      value={newCourse.description}
-                      onChange={(e) =>
-                        setNewCourse({
-                          ...newCourse,
-                          description: e.target.value,
-                        })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <button
-                    onClick={handleAddCourse}
-                    className='px-6 py-2 bg-primary text-white rounded-md'
-                  >
-                    Add Course
-                  </button>
+            )}
+
+            {showUpdateCourseForm && (
+              <div className='mt-4 p-4 border rounded-md'>
+                <h3 className='text-lg font-semibold mb-2'>
+                  Update Course: {selectedCourse?.title}
+                </h3>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>Title</label>
+                  <input
+                    type='text'
+                    value={newCourse.title}
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, title: e.target.value })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
                 </div>
-              )}
-              {showUpdateCourseForm && (
-                <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Update Course: {selectedCourse?.title}
-                  </h3>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>Title</label>
-                    <input
-                      type='text'
-                      value={newCourse.title}
-                      onChange={(e) =>
-                        setNewCourse({ ...newCourse, title: e.target.value })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>
-                      Description
-                    </label>
-                    <input
-                      type='text'
-                      value={newCourse.description}
-                      onChange={(e) =>
-                        setNewCourse({
-                          ...newCourse,
-                          description: e.target.value,
-                        })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <button
-                    onClick={handleUpdateCourse}
-                    className='px-6 py-2 bg-primary text-white rounded-md'
-                  >
-                    Update Course
-                  </button>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>
+                    Description
+                  </label>
+                  <input
+                    type='text'
+                    value={newCourse.description}
+                    onChange={(e) =>
+                      setNewCourse({
+                        ...newCourse,
+                        description: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
                 </div>
-              )}
-            </div>
+                <button
+                  onClick={handleUpdateCourse}
+                  className='px-6 py-2 bg-primary text-white rounded-md'
+                >
+                  Update Course
+                </button>
+              </div>
+            )}
           </div>
         )}
+
         {currentSection === 'evaluator' && (
           <div id='evaluator-link' className='bg-light'>
-            <h2 className='text-xl font-bold text-primary mb-4'>
-              Evaluator Management
-            </h2>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='text-xl font-bold text-primary'>
+                Evaluator Management
+              </h2>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md'
+                onClick={() => setShowAddEvaluatorForm(!showAddEvaluatorForm)}
+              >
+                Add Evaluator
+              </button>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md ml-2'
+                onClick={() => setShowCourseAssignForm(!showCourseAssignForm)}
+              >
+                Course Assigning
+              </button>
+            </div>
+
+            {/* Evaluator List */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {evaluators.map((evaluator, index) => (
                 <div key={index} className='p-4 border rounded-md shadow-md'>
@@ -463,160 +554,195 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               ))}
-              <div className='flex justify-center mt-6'>
+            </div>
+
+            {/* Add Evaluator Form */}
+            {showAddEvaluatorForm && (
+              <div className='mt-4 p-4 border rounded-md shadow-md'>
+                <h3 className='text-lg font-semibold mb-2'>
+                  Add New Evaluator
+                </h3>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>Username</label>
+                  <input
+                    type='text'
+                    value={newEvaluator.name}
+                    onChange={(e) =>
+                      setNewEvaluator({
+                        ...newEvaluator,
+                        name: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
+                </div>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>Email</label>
+                  <input
+                    type='email'
+                    value={newEvaluator.email}
+                    onChange={(e) =>
+                      setNewEvaluator({
+                        ...newEvaluator,
+                        email: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
+                </div>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>Password</label>
+                  <input
+                    type='password'
+                    value={newEvaluator.password}
+                    onChange={(e) =>
+                      setNewEvaluator({
+                        ...newEvaluator,
+                        password: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border rounded-md'
+                  />
+                </div>
                 <button
-                  className='px-6 py-2 bg-primary text-white rounded-md'
-                  onClick={() => setShowAddEvaluatorForm(!showAddEvaluatorForm)}
+                  onClick={handleAddEvaluator}
+                  className='px-6 py-2 bg-blue-500 text-white rounded-md'
                 >
                   Add Evaluator
                 </button>
               </div>
+            )}
 
-              {showAddEvaluatorForm && (
-                <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Add New Evaluator
-                  </h3>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>
-                      Username
-                    </label>
-                    <input
-                      type='text'
-                      value={newEvaluator.name}
-                      onChange={(e) =>
-                        setNewEvaluator({
-                          ...newEvaluator,
-                          name: e.target.value,
-                        })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>Email</label>
-                    <input
-                      type='email'
-                      value={newEvaluator.email}
-                      onChange={(e) =>
-                        setNewEvaluator({
-                          ...newEvaluator,
-                          email: e.target.value,
-                        })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <div className='mb-2'>
-                    <label className='block text-sm font-medium'>
-                      Password
-                    </label>
-                    <input
-                      type='password'
-                      value={newEvaluator.password}
-                      onChange={(e) =>
-                        setNewEvaluator({
-                          ...newEvaluator,
-                          password: e.target.value,
-                        })
-                      }
-                      className='w-full px-3 py-2 border rounded-md'
-                    />
-                  </div>
-                  <button
-                    onClick={handleAddEvaluator}
-                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+            {/* Course Assigning Form */}
+            {showCourseAssignForm && (
+              <div className='mt-4 p-4 border rounded-md shadow-md'>
+                <h3 className='text-lg font-semibold mb-2'>Course Assigning</h3>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>
+                    Select Evaluator
+                  </label>
+                  <select
+                    value={selectedEvaluatorId}
+                    onChange={(e) => setSelectedEvaluatorId(e.target.value)}
+                    className='w-full px-3 py-2 border rounded-md'
                   >
-                    Add Evaluator
-                  </button>
+                    <option value=''>Select Evaluator</option>
+                    {evaluators.map((evaluator) => (
+                      <option key={evaluator._id} value={evaluator._id}>
+                        {evaluator.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </div>
+                <div className='mb-2'>
+                  <label className='block text-sm font-medium'>
+                    Select Course
+                  </label>
+                  <select
+                    value={selectedCourseId}
+                    onChange={(e) => setSelectedCourseId(e.target.value)}
+                    className='w-full px-3 py-2 border rounded-md'
+                  >
+                    <option value=''>Select Course</option>
+                    {courses.map((course) => (
+                      <option key={course._id} value={course._id}>
+                        {course.title}{' '}
+                        {/* Adjust according to your course field */}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleAssignCourse}
+                  className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                >
+                  Assign Course
+                </button>
+              </div>
+            )}
           </div>
         )}
+
         {currentSection === 'studentmanagement' && (
           <div id='student-management-link' className='bg-light'>
-            <h2 className='text-xl font-bold text-primary mb-4'>
-              Student Management
-            </h2>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='text-xl font-bold text-primary'>
+                Student Management
+              </h2>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md'
+                onClick={() => setShowAddStudentForm(!showAddStudentForm)}
+              >
+                Add Student
+              </button>
+            </div>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
               {students.map((student, index) => (
-                <div key={index} className='p-4 border rounded-md  shadow-md '>
+                <div key={index} className='p-4 border rounded-md shadow-md'>
                   <div className='flex flex-col items-start'>
-                    <div>
-                      <h3 className='text-lg font-semibold'>{student.name}</h3>
-                      <p>{student.email}</p>
-                    </div>
+                    <h3 className='text-lg font-semibold'>{student.name}</h3>
+                    <p>{student.email}</p>
                   </div>
                 </div>
               ))}
-              <div className='flex justify-center mt-6'>
-                <button
-                  className='px-6 py-2 bg-primary text-white rounded-md'
-                  onClick={() => setShowAddStudentForm(!showAddStudentForm)}
-                >
-                  Add Student
-                </button>
-              </div>
-
-              {showAddStudentForm && (
-                <div className='mt-4 p-4 border rounded-md'>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Add New Student
-                  </h3>
-                  <div className='space-y-4'>
-                    <div>
-                      <label className='block mb-1'>Name</label>
-                      <input
-                        type='text'
-                        className='w-full px-4 py-2 border rounded-md'
-                        value={newStudent.name}
-                        onChange={(e) =>
-                          setNewStudent({ ...newStudent, name: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block mb-1'>Email</label>
-                      <input
-                        type='email'
-                        className='w-full px-4 py-2 border rounded-md'
-                        value={newStudent.email}
-                        onChange={(e) =>
-                          setNewStudent({
-                            ...newStudent,
-                            email: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block mb-1'>Password</label>
-                      <input
-                        type='password'
-                        className='w-full px-4 py-2 border rounded-md'
-                        value={newStudent.password}
-                        onChange={(e) =>
-                          setNewStudent({
-                            ...newStudent,
-                            password: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-                    <button
-                      onClick={handleAddStudent}
-                      className='px-6 py-2 bg-blue-500 text-white rounded-md'
-                    >
-                      Add Student
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {showAddStudentForm && (
+              <div className='mt-4 p-4 border rounded-md shadow-md'>
+                <h3 className='text-lg font-semibold mb-2'>Add New Student</h3>
+                <div className='space-y-4'>
+                  <div>
+                    <label className='block mb-1'>Name</label>
+                    <input
+                      type='text'
+                      className='w-full px-4 py-2 border rounded-md'
+                      value={newStudent.name}
+                      onChange={(e) =>
+                        setNewStudent({ ...newStudent, name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className='block mb-1'>Email</label>
+                    <input
+                      type='email'
+                      className='w-full px-4 py-2 border rounded-md'
+                      value={newStudent.email}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          email: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className='block mb-1'>Password</label>
+                    <input
+                      type='password'
+                      className='w-full px-4 py-2 border rounded-md'
+                      value={newStudent.password}
+                      onChange={(e) =>
+                        setNewStudent({
+                          ...newStudent,
+                          password: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddStudent}
+                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                  >
+                    Add Student
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
