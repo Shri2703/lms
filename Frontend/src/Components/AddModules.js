@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   FaBars,
   FaSun,
@@ -9,24 +9,28 @@ import {
   FaSearch,
   FaArrowLeft,
   FaPlus,
-} from 'react-icons/fa'
-import Adminsidenav from './Adminsidenav'
-import user from '../Images/user.png'
-import { jwtDecode as jwt_decode } from 'jwt-decode'
+} from 'react-icons/fa';
+import Adminsidenav from './Adminsidenav';
+import user from '../Images/user.png';
+import { jwtDecode as jwt_decode } from 'jwt-decode';
 
 const AddModules = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [username, setUsername] = useState('')
-  const { courseId } = useParams()
-  const [moduleName, setModuleName] = useState('')
-  const [moduleDescription, setModuleDescription] = useState('')
-  const [modules, setModules] = useState([])
-  const [files, setFiles] = useState([]) // Updated to handle multiple files
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [username, setUsername] = useState('');
+  const { courseId } = useParams();
+  const [moduleName, setModuleName] = useState('');
+  const [moduleDescription, setModuleDescription] = useState('');
+  const [modules, setModules] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [editingModule, setEditingModule] = useState(null);
   const [showModuleForm, setShowModuleForm] = useState(false)
+  const [module, setModule] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
+  
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -34,29 +38,59 @@ const AddModules = () => {
       setUsername(userData.user.name)
     }
 
-    // Fetch all modules for the course
     const fetchModules = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/modules/${courseId}`
+          `http://localhost:5000/api/courses/${courseId}/modules`
         )
-        setModules(response.data)
+
+        if (response.data.success) {
+          const modulesWithFileDetails = await Promise.all(
+            response.data.modules.map(async (module) => {
+              const fileDetails = await Promise.all(
+                module.files.map(async (fileId) => {
+                  const fileResponse = await axios.get(
+                    `http://localhost:5000/${fileId}`
+                  )
+                  return fileResponse.data.file
+                })
+              )
+
+              return {
+                ...module,
+                fileDetails, // Add detailed file information to the module
+              }
+            })
+          )
+
+          setModules(modulesWithFileDetails)
+        } else {
+          throw new Error('Failed to fetch modules')
+        }
       } catch (err) {
         console.error('Error fetching modules:', err)
+        setError('Failed to fetch modules')
+      } finally {
+        setLoading(false)
       }
     }
 
+    
+
     fetchModules()
+    
   }, [courseId])
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    document.documentElement.classList.toggle('dark')
-  }
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle('dark');
+  };
 
   const handleBackClick = () => {
-    navigate(-1)
-  }
+    navigate(-1);
+  };
+
+   // Import useParams
 
   const handleAddModule = async () => {
     try {
@@ -69,7 +103,7 @@ const AddModules = () => {
       })
 
       const response = await axios.post(
-        `http://localhost:5000/api/modules/${courseId}`,
+        `http://localhost:5000/api/courses/${courseId}/modules`,
         formData,
         {
           headers: {
@@ -89,9 +123,81 @@ const AddModules = () => {
     }
   }
 
+
+
+
+  const handleEditModule = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:5000/api/modules/${editingModule._id}`,
+        {
+          name: moduleName,
+          description: moduleDescription,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setModules(
+        modules.map((module) =>
+          module._id === editingModule._id ? response.data.module : module
+        )
+      );
+      setModuleName('');
+      setModuleDescription('');
+      setEditingModule(null);
+    } catch (err) {
+      console.error('Error editing module:', err);
+    }
+  };
+
+  const handleDeleteModule = async (moduleId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/modules/${moduleId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setModules(modules.filter((module) => module._id !== moduleId));
+    } catch (err) {
+      console.error('Error deleting module:', err);
+    }
+  };
+
+  const startEditing = (module) => {
+    setEditingModule(module);
+    setModuleName(module.name);
+    setModuleDescription(module.description);
+  };
+  
   const handleCreateNewTest = (moduleId) => {
     navigate(`/createnewtest?courseId=${courseId}&moduleId=${moduleId}`)
   }
+   if (loading) {
+     return <p>Loading modules...</p>
+   }
+
+   if (error) {
+     return <p className='text-red-500'>{error}</p>
+   }
+
+  // if (loading) {
+  //   return <p>Loading files...</p>
+  // }
+
+  // if (error) {
+  //   return <p className='text-red-500'>{error}</p>
+  // }
+
+  // if (!module || !module.files || module.files.length === 0) {
+  //   return <p>No files available for this module.</p>
+  // }
 
 
   return (
@@ -146,12 +252,11 @@ const AddModules = () => {
         <div className='flex justify-between mb-4'>
           <button
             onClick={() => setShowModuleForm(!showModuleForm)}
-            className='px-6 py-2 bg-green-500 text-white rounded-md'
+            className='px-6 py-2 bg-primary text-white rounded-md'
           >
             Add Module
           </button>
         </div>
-
         {showModuleForm && (
           <div className='w-full max-w-md p-8 space-y-6 bg-white rounded-md shadow-md mb-6'>
             <h2 className='text-xl font-bold text-primary mb-4'>Add Module</h2>
@@ -179,7 +284,7 @@ const AddModules = () => {
 
               <button
                 onClick={handleAddModule}
-                className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                className='px-6 py-2 bg-primary text-white rounded-md'
               >
                 Add Module
               </button>
@@ -187,30 +292,92 @@ const AddModules = () => {
           </div>
         )}
 
-        <div className='space-y-4'>
-          {modules.map((module) => (
-            <div key={module._id} className='p-4 border rounded-md shadow-md'>
-              <h3 className='text-lg font-semibold'>{module.name}</h3>
-              <p>{module.description}</p>
-              {module.files &&
-                module.files.map((file, fileIndex) => (
-                  <a
-                    key={fileIndex}
-                    href={`http://localhost:5000/${file.path}`}
-                    download
-                    className='block text-blue-500'
-                  >
-                    {file.name}
-                  </a>
-                ))}
+        {editingModule !== null && (
+          <div className='w-full max-w-md p-8 space-y-6 bg-white rounded-md shadow-md mb-6'>
+            <h2 className='text-xl font-bold text-primary mb-4'>
+              {editingModule ? 'Edit Module' : 'Add Module'}
+            </h2>
+            <div className='space-y-4'>
+              <input
+                type='text'
+                className='w-full p-2 border rounded-md'
+                placeholder='Module Name'
+                value={moduleName}
+                onChange={(e) => setModuleName(e.target.value)}
+              />
+              <textarea
+                className='w-full p-2 border rounded-md'
+                placeholder='Module Description'
+                value={moduleDescription}
+                onChange={(e) => setModuleDescription(e.target.value)}
+              />
+              {!editingModule && (
+                <input
+                  type='file'
+                  className='w-full p-2 border rounded-md'
+                  onChange={(e) => setFiles(Array.from(e.target.files))}
+                  name='files'
+                  multiple
+                />
+              )}
               <button
-                onClick={() => handleCreateNewTest(module._id)}
-                className='mt-4 px-6 py-2 bg-blue-500 text-white rounded-md'
+                onClick={editingModule ? handleEditModule : handleAddModule}
+                className='px-6 py-2 bg-primary text-whiterounded-md'
               >
-                Add MCQ Questions
+                {editingModule ? 'Update Module' : 'Add Module'}
               </button>
             </div>
-          ))}
+          </div>
+        )}
+
+        <div className=' flex space-x-4 '>
+          {modules.length > 0 ? (
+            modules.map((module) => (
+              <div key={module._id} className='p-4 border rounded-md shadow-md'>
+                <h3 className='text-lg font-semibold'>{module.name}</h3>
+                <p>{module.description}</p>
+                <div className=' mt-2'>
+                  {module.fileDetails.map((file, index) => (
+                    <a
+                      key={index}
+                      href={`http://localhost:5000/${file.path}`}
+                      download
+                      className='block text-blue-500 underline'
+                    >
+                      {file.name}
+                    </a>
+                  ))}
+                </div>
+                {/* {module.fileDetails?.length > 0 ? (
+                  
+                ) : (
+                  <p>No files available for this module</p>
+                )} */}
+                <div className='flex space-x-4 mt-4'>
+                  <button
+                    onClick={() => startEditing(module)}
+                    className='px-6 py-2 bg-primary text-white rounded-md'
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteModule(module._id)}
+                    className='px-6 py-2 bg-primary text-white rounded-md'
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => handleCreateNewTest(module._id)}
+                    className=' px-6 py-2 bg-primary text-white rounded-md'
+                  >
+                    Add Test
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No modules available</p>
+          )}
         </div>
       </div>
     </div>
@@ -218,3 +385,4 @@ const AddModules = () => {
 }
 
 export default AddModules
+

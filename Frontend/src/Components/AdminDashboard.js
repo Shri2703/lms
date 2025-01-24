@@ -18,177 +18,152 @@ const AdminDashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [username, setUsername] = useState('')
-  const [courseDetails, setCourseDetails] = useState({})
   const [courses, setCourses] = useState([])
+  const [courseDetails, setCourseDetails] = useState({}) // Track expanded courses
+  const [loading, setLoading] = useState(true) // Tracks loading state
+  const [error, setError] = useState(null)
   const [evaluators, setEvaluators] = useState([])
-  const [students, setStudents] = useState([])
   const [showAddCourseForm, setShowAddCourseForm] = useState(false)
   const [newCourse, setNewCourse] = useState({ title: '', description: '' })
-  const [showUpdateCourseForm, setShowUpdateCourseForm] = useState(false)
-  const [selectedCourse, setSelectedCourse] = useState(null)
+  
+
+  // const [showCourseAssignForm, setShowCourseAssignForm] = useState(false)
+  // const [selectedEvaluatorId, setSelectedEvaluatorId] = useState('')
+  // const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [editCourse, setEditCourse] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
   const [showAddEvaluatorForm, setShowAddEvaluatorForm] = useState(false)
   const [newEvaluator, setNewEvaluator] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'evaluator',
   })
-  const [showAddStudentForm, setShowAddStudentForm] = useState(false)
+  const [assignData, setAssignData] = useState({
+    evaluatorId: '',
+    courseId: '',
+  })
+  const [unassignData, setUnassignData] = useState({
+    evaluatorId: '',
+    courseId: '',
+  })
+
+  const [showUnassignCourseForm, setShowUnassignCourseForm] = useState(false)
+
+  const [showAssignCourseForm, setShowAssignCourseForm] = useState(false)
+  // Define courseDetails state here to manage course details visibility
+
+  // State variables for Student Management
+  const [students, setStudents] = useState([])
   const [newStudent, setNewStudent] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'student',
   })
-
-  const [showCourseAssignForm, setShowCourseAssignForm] = useState(false)
-  const [selectedEvaluatorId, setSelectedEvaluatorId] = useState('')
-  const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [assignStudentData, setAssignStudentData] = useState({
+    studentId: '',
+    courseId: '',
+  })
+  const [unassignStudentData, setUnassignStudentData] = useState({
+    studentId: '',
+    courseId: '',
+  })
+  const [showAddStudentForm, setShowAddStudentForm] = useState(false)
+  // State variables for Student Management
   
+  const [showAssignStudentCourseForm, setShowAssignStudentCourseForm] =
+    useState(false)
+  const [showUnassignStudentCourseForm, setShowUnassignStudentCourseForm] =
+    useState(false)
 
-  // Fetch evaluators and courses on component mount
-  
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [showFileInput, setShowFileInput] = useState(false)
+  const [showBulkRegisterForm, setShowBulkRegisterForm] = useState(false)
+
   useEffect(() => {
-    const fetchEvaluators = async () => {
-      const response = await fetch('/api/evaluators')
-      if (!response.ok) {
-        alert('Failed to fetch evaluators')
-        return
-      }
-      const data = await response.json()
-      setEvaluators(data)
-    }
-
     const fetchCourses = async () => {
-      const response = await fetch('/api/allcourses')
-      if (!response.ok) {
-        alert('Failed to fetch courses')
-        return
+      try {
+        const response = await axios.get('http://localhost:5000/api/allcourses')
+        if (response.data.success) {
+          setCourses(response.data.courses)
+        } else {
+          throw new Error('Failed to fetch courses')
+        }
+      } catch (err) {
+        setError(err.message || 'Error fetching courses')
+      } finally {
+        setLoading(false)
       }
-      const data = await response.json()
-      setCourses(data)
     }
 
-    fetchEvaluators()
     fetchCourses()
-  }, [])
-
-
-  const handleAssignCourse = async () => {
-    if (!selectedEvaluatorId || !selectedCourseId) {
-      alert('Please select an evaluator and a course.')
-      return
-    }
-
-    try {
-      const response = await fetch(
-        'http://localhost:3000/api/evaluators/assign-course',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            evaluatorId: selectedEvaluatorId,
-            courseId: selectedCourseId,
-          }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (response.ok) {
-        alert('Course assigned successfully.')
-        setShowCourseAssignForm(false)
-      } else {
-        alert(`Error: ${data.message}`)
-      }
-    } catch (error) {
-      alert('Error assigning course. Please try again.')
-    }
-  }
-
-
-
-  
-
-  const fetchStudents = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(
-        'http://localhost:5000/api/users/students',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      setStudents(response.data)
-    } catch (err) {
-      console.error('Error fetching students:', err)
-    }
-  }
-
-  useEffect(() => {
+    fetchEvaluators()
     fetchStudents()
   }, [])
-
-  const handleAddStudent = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      await axios.post('http://localhost:5000/api/users/register', newStudent, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      setShowAddStudentForm(false)
-      setNewStudent({ name: '', email: '', password: '', role: 'student' })
-      fetchStudents() // Refresh student list after adding
-    } catch (err) {
-      console.error('Error adding student:', err)
-    }
-  }
-
   const fetchEvaluators = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(
-        'http://localhost:5000/api/users/evaluators',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      const response = await axios.get('http://localhost:5000/api/evaluators')
       setEvaluators(response.data)
+    } catch (error) {
+      console.error('Error fetching evaluators:', error)
+    }
+  }
+ const fetchStudents = async () => {
+   try {
+     const response = await axios.get('http://localhost:5000/api/students')
+     // Access the 'students' array from the response object
+     setStudents(response.data.students)
+   } catch (error) {
+     console.error('Error fetching students:', error)
+   }
+ }
+
+
+  const handleAddCourse = async () => {
+    try {
+      const response = await axios.post(
+        'http://localhost:5000/api/courses',
+        newCourse
+      )
+      if (response.data.success) {
+        setCourses([...courses, response.data.course])
+        setShowAddCourseForm(false)
+        setNewCourse({ title: '', description: '' })
+      }
     } catch (err) {
-      console.error('Error fetching evaluators:', err)
+      console.error('Error adding course:', err)
     }
   }
 
-  useEffect(() => {
-    fetchEvaluators()
-  }, [])
-
-  const handleAddEvaluator = async () => {
+  const handleUpdateCourse = async () => {
     try {
-      const token = localStorage.getItem('token')
-      await axios.post(
-        'http://localhost:5000/api/users/register',
-        newEvaluator,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await axios.put(
+        `http://localhost:5000/api/courses/${editCourse._id}`,
+        editCourse
       )
-      setShowAddEvaluatorForm(false)
-      setNewEvaluator({ name: '', email: '', password: '', role: 'evaluator' })
-      fetchEvaluators() // Refresh the evaluator list after adding
+      if (response.data.success) {
+        setCourses((prevCourses) =>
+          prevCourses.map((course) =>
+            course._id === editCourse._id ? response.data.course : course
+          )
+        )
+        setIsEditing(false)
+        setEditCourse(null)
+      }
     } catch (err) {
-      console.error('Error adding evaluator:', err)
+      console.error('Error updating course:', err)
+    }
+  }
+
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/courses/${courseId}`
+      )
+      if (response.data.success) {
+        setCourses(courses.filter((course) => course._id !== courseId))
+      }
+    } catch (err) {
+      console.error('Error deleting course:', err)
     }
   }
 
@@ -197,148 +172,166 @@ const AdminDashboard = () => {
     document.documentElement.classList.toggle('dark')
   }
 
-  const toggleCourseDetails = (course) => {
-    setCourseDetails((prevDetails) => ({
-      ...prevDetails,
-      [course]: !prevDetails[course],
+  const toggleCourseDetails = (courseTitle) => {
+    setCourseDetails((prev) => ({
+      ...prev,
+      [courseTitle]: !prev[courseTitle],
     }))
   }
 
-  const handleAddCourse = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.post(
-        'http://localhost:5000/api/courses',
-        newCourse,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      setCourses([...courses, response.data])
-      setShowAddCourseForm(false)
-      setNewCourse({ title: '', description: '' })
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleUpdateCourse = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.put(
-        `http://localhost:5000/api/courses/${selectedCourse._id}`,
-        newCourse,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      setCourses(
-        courses.map((course) =>
-          course._id === selectedCourse._id ? response.data : course
-        )
-      )
-      setShowUpdateCourseForm(false)
-      setNewCourse({ title: '', description: '' })
-      setSelectedCourse(null)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleDeleteCourse = async (courseId) => {
-    try {
-      const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:5000/api/courses/${courseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      setCourses(courses.filter((course) => course._id !== courseId))
-    } catch (err) {
-      console.error('Error deleting course:', err)
-    }
-  }
-
   const navigate = useNavigate()
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
       const userData = jwt_decode(token)
       setUsername(userData.user.name)
     }
-
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get(
-          'http://localhost:5000/api/allcourses',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        setCourses(response.data)
-      } catch (err) {
-        console.error('Error fetching courses:', err)
-      }
-    }
-
-    const fetchEvaluators = async () => {
-      try {
-        const response = await axios.get(
-          'http://localhost:5000/api/users/evaluators',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        setEvaluators(response.data)
-      } catch (err) {
-        console.error('Error fetching evaluators:', err)
-      }
-    }
-
-    const fetchStudents = async () => {
-      try {
-        const response = await axios.get(
-          'http://localhost:5000/api/users/students',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        setStudents(response.data)
-      } catch (err) {
-        console.error('Error fetching students:', err)
-      }
-    }
-
-    fetchCourses()
-    fetchEvaluators()
-    fetchStudents()
   }, [])
-
-  const handleCreateNewTest = () => {
-    navigate('/createnewtest')
-  }
-
   const handleAddModule = (courseId) => {
     navigate(`/addmodules/${courseId}`)
   }
 
-  const handleUpdateClick = (course) => {
-    setSelectedCourse(course)
-    setNewCourse({ title: course.title, description: course.description })
-    setShowUpdateCourseForm(true)
+  if (loading) {
+    return <p>Loading courses...</p>
   }
+
+  if (error) {
+    return <p className='text-red-500'>Error: {error}</p>
+  }
+
+  const handleAddEvaluator = async () => {
+    try {
+      await axios.post('http://localhost:5000/api/evaluator', newEvaluator)
+      setNewEvaluator({ name: '', email: '', password: '' })
+      setShowAddEvaluatorForm(false)
+      fetchEvaluators()
+    } catch (error) {
+      console.error('Error adding evaluator:', error)
+    }
+  }
+
+  const handleAssignCourse = async () => {
+    try {
+      await axios.post(
+        `http://localhost:5000/api/evaluators/assign-courses/${assignData.evaluatorId}`,
+        {
+          courseIds: [assignData.courseId],
+        }
+      )
+      setAssignData({ evaluatorId: '', courseId: '' })
+      setShowAssignCourseForm(false)
+      fetchEvaluators()
+    } catch (error) {
+      console.error('Error assigning course:', error)
+    }
+  }
+
+  const handleUnassignCourse = async () => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/evaluators/${unassignData.evaluatorId}/unassign-course`,
+        {
+          data: { courseId: unassignData.courseId },
+        }
+      )
+      setUnassignData({ evaluatorId: '', courseId: '' })
+      setShowUnassignCourseForm(false)
+      fetchEvaluators()
+    } catch (error) {
+      console.error('Error unassigning course:', error)
+    }
+  }
+
+   const handleBulkRegister = async () => {
+     if (!selectedFile) {
+       alert('Please select a file first!')
+       return
+     }
+
+     const formData = new FormData()
+     formData.append('csv', selectedFile)
+
+     try {
+       const response = await fetch(
+         'http://localhost:5000/register-bulk-students',
+         {
+           method: 'POST',
+           body: formData,
+         }
+       )
+       const result = await response.json()
+
+       if (response.ok) {
+         alert('Bulk registration successful!')
+         fetchStudents()
+       } else {
+         alert(`Failed: ${result.message}`)
+       }
+     } catch (error) {
+       console.error('Bulk registration error:', error)
+       alert('Something went wrong. Please try again.')
+     }
+   }
+  const handleFileChange = (event) => {
+     setSelectedFile(event.target.files[0])
+   }
+
+  const handleAddStudent = async () => {
+    if (!newStudent.name || !newStudent.email || !newStudent.password) {
+      alert('Please fill out all fields')
+      return
+    }
+
+    try {
+      await axios.post('http://localhost:5000/api/students', newStudent)
+      setNewStudent({ name: '', email: '', password: '' })
+      setShowAddStudentForm(false)
+      fetchStudents() // Ensure fetchStudents is properly defined
+    } catch (error) {
+      console.error(
+        'Error adding student:',
+        error.response?.data || error.message
+      )
+    }
+  }
+
+
+  const handleAssignCourseToStudent = async () => {
+    try {
+      await axios.post(
+        `http://localhost:5000/api/students/${assignStudentData.studentId}/assign-course`,
+        {
+          courseId: assignStudentData.courseId,
+        }
+      )
+      setAssignStudentData({ studentId: '', courseId: '' })
+      setShowAssignStudentCourseForm(false)
+      fetchStudents()
+    } catch (error) {
+      console.error('Error assigning course to student:', error)
+    }
+  }
+
+  // Unassign a course from a student
+  const handleUnassignCourseFromStudent = async () => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/students/${unassignStudentData.studentId}/unassign-course`,
+        {
+          data: { courseId: unassignStudentData.courseId },
+        }
+      )
+      setUnassignStudentData({ studentId: '', courseId: '' })
+      setShowUnassignStudentCourseForm(false)
+      fetchStudents()
+    } catch (error) {
+      console.error('Error unassigning course from student:', error)
+    }
+  }
+
+
+
 
   return (
     <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''} bg-basic`}>
@@ -381,6 +374,8 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Conditional Rendering for Dashboard */}
         {currentSection === 'dashboard' && (
           <div id='course-link' className='bg-light'>
             <div className='flex justify-between items-center mb-4'>
@@ -388,16 +383,17 @@ const AdminDashboard = () => {
                 Course Management
               </h2>
               <button
-                onClick={() => setShowAddCourseForm(!showAddCourseForm)}
+                onClick={() => setShowAddCourseForm(true)}
                 className='px-6 py-2 bg-primary text-white rounded-md'
               >
                 Add Course
               </button>
             </div>
 
+            {/* Courses List */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {courses.map((course, index) => (
-                <div key={index} className='p-4 border rounded-md shadow-md'>
+              {courses.map((course) => (
+                <div className='p-4 border rounded-md shadow-md'>
                   <div className='flex items-center justify-between'>
                     <div>
                       <h3 className='text-lg font-semibold'>{course.title}</h3>
@@ -418,14 +414,17 @@ const AdminDashboard = () => {
                     <div className='mt-4 space-y-4'>
                       <div className='flex space-x-2'>
                         <button
-                          onClick={() => handleUpdateClick(course)}
-                          className='px-4 py-2 bg-yellow-500 text-white rounded-md'
+                          className='px-4 py-2 bg-primary text-white rounded-md mr-2'
+                          onClick={() => {
+                            setEditCourse(course)
+                            setIsEditing(true)
+                          }}
                         >
                           Update
                         </button>
                         <button
                           onClick={() => handleDeleteCourse(course._id)}
-                          className='px-4 py-2 bg-red-500 text-white rounded-md'
+                          className='px-4 py-2 bg-primary text-white rounded-md'
                         >
                           Delete
                         </button>
@@ -441,91 +440,90 @@ const AdminDashboard = () => {
                 </div>
               ))}
             </div>
-
-            {showAddCourseForm && (
-              <div className='mt-4 p-4 border rounded-md'>
-                <h3 className='text-lg font-semibold mb-2'>Add New Course</h3>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>Title</label>
-                  <input
-                    type='text'
-                    value={newCourse.title}
-                    onChange={(e) =>
-                      setNewCourse({ ...newCourse, title: e.target.value })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>
-                    Description
-                  </label>
-                  <input
-                    type='text'
-                    value={newCourse.description}
-                    onChange={(e) =>
-                      setNewCourse({
-                        ...newCourse,
-                        description: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
+          </div>
+        )}
+        {/* Add Course Form */}
+        {showAddCourseForm && (
+          <div className='w-full max-w-md p-8 space-y-6 bg-white rounded-md shadow-md mb-6'>
+            <h2 className='text-xl font-bold text-primary mb-4'>Add Course</h2>
+            <div className='space-y-4'>
+              <input
+                type='text'
+                className='w-full p-2 border rounded-md'
+                placeholder='Course Title'
+                value={newCourse.title}
+                onChange={(e) =>
+                  setNewCourse((prev) => ({ ...prev, title: e.target.value }))
+                }
+              />
+              <textarea
+                className='w-full p-2 border rounded-md'
+                placeholder='Course Description'
+                value={newCourse.description}
+                onChange={(e) =>
+                  setNewCourse((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+              <div className='flex justify-between'>
                 <button
                   onClick={handleAddCourse}
-                  className='px-6 py-2 bg-primary text-white rounded-md'
+                  className='px-6 py-2 bg-blue-500 text-white rounded-md'
                 >
                   Add Course
                 </button>
-              </div>
-            )}
-
-            {showUpdateCourseForm && (
-              <div className='mt-4 p-4 border rounded-md'>
-                <h3 className='text-lg font-semibold mb-2'>
-                  Update Course: {selectedCourse?.title}
-                </h3>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>Title</label>
-                  <input
-                    type='text'
-                    value={newCourse.title}
-                    onChange={(e) =>
-                      setNewCourse({ ...newCourse, title: e.target.value })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>
-                    Description
-                  </label>
-                  <input
-                    type='text'
-                    value={newCourse.description}
-                    onChange={(e) =>
-                      setNewCourse({
-                        ...newCourse,
-                        description: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
                 <button
-                  onClick={handleUpdateCourse}
-                  className='px-6 py-2 bg-primary text-white rounded-md'
+                  onClick={() => setShowAddCourseForm(false)}
+                  className='px-6 py-2 bg-red-500 text-white rounded-md'
                 >
-                  Update Course
+                  Cancel
                 </button>
               </div>
-            )}
+            </div>
+          </div>
+        )}
+        {isEditing && (
+          <div className='bg-white p-6 rounded-md shadow-md'>
+            <h2 className='text-xl font-bold mb-4'>Edit Course</h2>
+            <input
+              type='text'
+              value={editCourse.title}
+              className='w-full p-2 border rounded-md mb-2'
+              onChange={(e) =>
+                setEditCourse((prev) => ({ ...prev, title: e.target.value }))
+              }
+            />
+            <textarea
+              value={editCourse.description}
+              className='w-full p-2 border rounded-md mb-2'
+              onChange={(e) =>
+                setEditCourse((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+            />
+            <div className='flex space-x-4'>
+              <button
+                className='px-4 py-2 bg-green-500 text-white rounded-md'
+                onClick={handleUpdateCourse}
+              >
+                Save
+              </button>
+              <button
+                className='px-4 py-2 bg-gray-500 text-white rounded-md'
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
         {currentSection === 'evaluator' && (
-          <div id='evaluator-link' className='bg-light'>
+          <div id='evaluator-link' className='bg-light p-4'>
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-xl font-bold text-primary'>
                 Evaluator Management
@@ -534,130 +532,200 @@ const AdminDashboard = () => {
                 className='px-4 py-2 bg-primary text-white rounded-md'
                 onClick={() => setShowAddEvaluatorForm(!showAddEvaluatorForm)}
               >
-                Add Evaluator
+                {showAddEvaluatorForm ? 'Close Form' : 'Add Evaluator'}
+              </button>
+            </div>
+
+            <h3 className='text-lg font-semibold mb-2'>List of Evaluators</h3>
+            <table className='table-auto w-full border-collapse border border-black-200  mb-4'>
+              <thead>
+                <tr className='bg-gray-100'>
+                  <th className='border border-gray-300 px-4 py-2'>Name</th>
+                  <th className='border border-gray-300 px-4 py-2'>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evaluators.length > 0 ? (
+                  evaluators.map((evaluator) => (
+                    <tr key={evaluator._id}>
+                      <td className='border border-gray-300 px-4 py-2'>
+                        {evaluator.userId.name}
+                      </td>
+                      <td className='border border-gray-300 px-4 py-2'>
+                        {evaluator.userId.email}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      className='border border-gray-300 px-4 py-2'
+                      colSpan='2'
+                    >
+                      No evaluators available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <div className='flex items-center justify-between mt-5'>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md '
+                onClick={() => setShowAssignCourseForm(!showAssignCourseForm)}
+              >
+                {showAssignCourseForm
+                  ? 'Close Assign Course Form'
+                  : 'Assign Course'}
               </button>
               <button
-                className='px-4 py-2 bg-primary text-white rounded-md ml-2'
-                onClick={() => setShowCourseAssignForm(!showCourseAssignForm)}
+                className='px-4 py-2 bg-primary text-white rounded-md '
+                onClick={() =>
+                  setShowUnassignCourseForm(!showUnassignCourseForm)
+                }
               >
-                Course Assigning
+                {showUnassignCourseForm
+                  ? 'Close Unassign Course Form'
+                  : 'Unassign Course'}
               </button>
             </div>
 
-            {/* Evaluator List */}
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-              {evaluators.map((evaluator, index) => (
-                <div key={index} className='p-4 border rounded-md shadow-md'>
-                  <div className='flex flex-col items-start'>
-                    <h3 className='text-lg font-semibold'>{evaluator.name}</h3>
-                    <p>{evaluator.email}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Add Evaluator Form */}
             {showAddEvaluatorForm && (
-              <div className='mt-4 p-4 border rounded-md shadow-md'>
-                <h3 className='text-lg font-semibold mb-2'>
-                  Add New Evaluator
-                </h3>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>Username</label>
-                  <input
-                    type='text'
-                    value={newEvaluator.name}
-                    onChange={(e) =>
-                      setNewEvaluator({
-                        ...newEvaluator,
-                        name: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>Email</label>
-                  <input
-                    type='email'
-                    value={newEvaluator.email}
-                    onChange={(e) =>
-                      setNewEvaluator({
-                        ...newEvaluator,
-                        email: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>Password</label>
-                  <input
-                    type='password'
-                    value={newEvaluator.password}
-                    onChange={(e) =>
-                      setNewEvaluator({
-                        ...newEvaluator,
-                        password: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border rounded-md'
-                  />
-                </div>
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>Add Evaluator</h3>
+                <input
+                  type='text'
+                  placeholder='Name'
+                  value={newEvaluator.name}
+                  onChange={(e) =>
+                    setNewEvaluator({ ...newEvaluator, name: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                  required
+                />
+                <input
+                  type='email'
+                  placeholder='Email'
+                  value={newEvaluator.email}
+                  onChange={(e) =>
+                    setNewEvaluator({ ...newEvaluator, email: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                  required
+                />
+                <input
+                  type='password'
+                  placeholder='Password'
+                  value={newEvaluator.password}
+                  onChange={(e) =>
+                    setNewEvaluator({
+                      ...newEvaluator,
+                      password: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                  required
+                />
                 <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
                   onClick={handleAddEvaluator}
-                  className='px-6 py-2 bg-blue-500 text-white rounded-md'
                 >
-                  Add Evaluator
+                  Submit
+                </button>
+                <button
+                  className='ml-4 px-4 py-2 bg-gray-500 text-white rounded-md'
+                  onClick={() => setShowAddEvaluatorForm(false)}
+                >
+                  Cancel
                 </button>
               </div>
             )}
 
-            {/* Course Assigning Form */}
-            {showCourseAssignForm && (
-              <div className='mt-4 p-4 border rounded-md shadow-md'>
-                <h3 className='text-lg font-semibold mb-2'>Course Assigning</h3>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>
-                    Select Evaluator
-                  </label>
-                  <select
-                    value={selectedEvaluatorId}
-                    onChange={(e) => setSelectedEvaluatorId(e.target.value)}
-                    className='w-full px-3 py-2 border rounded-md'
-                  >
-                    <option value=''>Select Evaluator</option>
-                    {evaluators.map((evaluator) => (
-                      <option key={evaluator._id} value={evaluator._id}>
-                        {evaluator.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className='mb-2'>
-                  <label className='block text-sm font-medium'>
-                    Select Course
-                  </label>
-                  <select
-                    value={selectedCourseId}
-                    onChange={(e) => setSelectedCourseId(e.target.value)}
-                    className='w-full px-3 py-2 border rounded-md'
-                  >
-                    <option value=''>Select Course</option>
-                    {courses.map((course) => (
-                      <option key={course._id} value={course._id}>
-                        {course.title}{' '}
-                        {/* Adjust according to your course field */}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleAssignCourse}
-                  className='px-6 py-2 bg-blue-500 text-white rounded-md'
+            {showAssignCourseForm && (
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>Assign Course</h3>
+                <select
+                  value={assignData.evaluatorId}
+                  onChange={(e) =>
+                    setAssignData({
+                      ...assignData,
+                      evaluatorId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
                 >
-                  Assign Course
+                  <option value=''>Select Evaluator</option>
+                  {evaluators.map((evaluator) => (
+                    <option key={evaluator._id} value={evaluator._id}>
+                      {evaluator.userId.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={assignData.courseId}
+                  onChange={(e) =>
+                    setAssignData({ ...assignData, courseId: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
+                  onClick={handleAssignCourse}
+                >
+                  Assign
+                </button>
+              </div>
+            )}
+
+            {showUnassignCourseForm && (
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>Unassign Course</h3>
+                <select
+                  value={unassignData.evaluatorId}
+                  onChange={(e) =>
+                    setUnassignData({
+                      ...unassignData,
+                      evaluatorId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Evaluator</option>
+                  {evaluators.map((evaluator) => (
+                    <option key={evaluator._id} value={evaluator._id}>
+                      {evaluator.userId.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={unassignData.courseId}
+                  onChange={(e) =>
+                    setUnassignData({
+                      ...unassignData,
+                      courseId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
+                  onClick={handleUnassignCourse}
+                >
+                  Unassign
                 </button>
               </div>
             )}
@@ -665,80 +733,270 @@ const AdminDashboard = () => {
         )}
 
         {currentSection === 'studentmanagement' && (
-          <div id='student-management-link' className='bg-light'>
+          <div id='student-management-link' className='bg-light p-4'>
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-xl font-bold text-primary'>
                 Student Management
               </h2>
               <button
-                className='px-4 py-2 bg-primary text-white rounded-md'
+                className='px-4 py-2  m-2 bg-primary text-white rounded-md'
                 onClick={() => setShowAddStudentForm(!showAddStudentForm)}
               >
-                Add Student
+                {showAddStudentForm ? 'Close Form' : 'Add Student'}
+              </button>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md'
+                onClick={() => setShowBulkRegisterForm((prev) => !prev)}
+              >
+                {showBulkRegisterForm
+                  ? 'Close Bulk Register Form'
+                  : 'Bulk Register Students'}
               </button>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-              {students.map((student, index) => (
-                <div key={index} className='p-4 border rounded-md shadow-md'>
-                  <div className='flex flex-col items-start'>
-                    <h3 className='text-lg font-semibold'>{student.name}</h3>
-                    <p>{student.email}</p>
-                  </div>
-                </div>
-              ))}
+
+            <h3 className='text-lg font-semibold mb-2'>List of Students</h3>
+            <table className='table-auto w-full border-collapse border border-black-200 mb-4'>
+              <thead>
+                <tr className='bg-gray-100'>
+                  <th className='border border-gray-300 px-4 py-2'>Name</th>
+                  <th className='border border-gray-300 px-4 py-2'>Email</th>
+                  {/* <th className='border border-gray-300 px-4 py-2'>
+                    Assigned Courses
+                  </th> */}
+                </tr>
+              </thead>
+              <tbody>
+                {students.length > 0 ? (
+                  students.map((student) => (
+                    <tr key={student._id}>
+                      <td className='border border-gray-300 px-4 py-2'>
+                        {student.userId?.name || 'No Name'}
+                      </td>
+                      <td className='border border-gray-300 px-4 py-2'>
+                        {student.userId?.email || 'No Email'}
+                      </td>
+                      {/* <td className='border border-gray-300 px-4 py-2'>
+                        {student.assignedCourses
+                          .map(
+                            (course) =>
+                              course.courseId?.title || 'No Title'
+                          )
+                          .join(', ')}
+                      </td> */}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      className='border border-gray-300 px-4 py-2'
+                      colSpan='3'
+                    >
+                      No students available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <div className='flex items-center justify-between mt-5'>
+              <button
+                className='px-4 py-2 m-2 bg-primary text-white rounded-md'
+                onClick={() =>
+                  setShowAssignStudentCourseForm(!showAssignStudentCourseForm)
+                }
+              >
+                {showAssignStudentCourseForm
+                  ? 'Close Assign Course Form'
+                  : 'Assign Course to Student'}
+              </button>
+              <button
+                className='px-4 py-2 bg-primary text-white rounded-md'
+                onClick={() =>
+                  setShowUnassignStudentCourseForm(
+                    !showUnassignStudentCourseForm
+                  )
+                }
+              >
+                {showUnassignStudentCourseForm
+                  ? 'Close Unassign Course Form'
+                  : 'Unassign Course from Student'}
+              </button>
             </div>
 
             {showAddStudentForm && (
-              <div className='mt-4 p-4 border rounded-md shadow-md'>
-                <h3 className='text-lg font-semibold mb-2'>Add New Student</h3>
-                <div className='space-y-4'>
-                  <div>
-                    <label className='block mb-1'>Name</label>
-                    <input
-                      type='text'
-                      className='w-full px-4 py-2 border rounded-md'
-                      value={newStudent.name}
-                      onChange={(e) =>
-                        setNewStudent({ ...newStudent, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className='block mb-1'>Email</label>
-                    <input
-                      type='email'
-                      className='w-full px-4 py-2 border rounded-md'
-                      value={newStudent.email}
-                      onChange={(e) =>
-                        setNewStudent({
-                          ...newStudent,
-                          email: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className='block mb-1'>Password</label>
-                    <input
-                      type='password'
-                      className='w-full px-4 py-2 border rounded-md'
-                      value={newStudent.password}
-                      onChange={(e) =>
-                        setNewStudent({
-                          ...newStudent,
-                          password: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>Add Student</h3>
+                <input
+                  type='text'
+                  placeholder='Name'
+                  value={newStudent.name}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, name: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                />
+                <input
+                  type='email'
+                  placeholder='Email'
+                  value={newStudent.email}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, email: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                />
+                <input
+                  type='password'
+                  placeholder='Password'
+                  value={newStudent.password}
+                  onChange={(e) =>
+                    setNewStudent({ ...newStudent, password: e.target.value })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                />
+                <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
+                  onClick={handleAddStudent}
+                >
+                  Submit
+                </button>
+                <button
+                  className='ml-4 px-4 py-2 bg-gray-500 text-white rounded-md'
+                  onClick={() => setShowAddStudentForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {showAssignStudentCourseForm && (
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>
+                  Assign Course to Student
+                </h3>
+                <select
+                  value={assignStudentData.studentId}
+                  onChange={(e) =>
+                    setAssignStudentData({
+                      ...assignStudentData,
+                      studentId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Student</option>
+                  {students.map((student) => (
+                    <option key={student._id} value={student._id}>
+                      {student.userId.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={assignStudentData.courseId}
+                  onChange={(e) =>
+                    setAssignStudentData({
+                      ...assignStudentData,
+                      courseId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
+                  onClick={handleAssignCourseToStudent}
+                >
+                  Assign
+                </button>
+                <button
+                  className='ml-4 px-4 py-2 bg-gray-500 text-white rounded-md'
+                  onClick={() => setShowAssignStudentCourseForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {showUnassignStudentCourseForm && (
+              <div className='mb-4'>
+                <h3 className='text-lg font-semibold mb-2'>
+                  Unassign Course from Student
+                </h3>
+                <select
+                  value={unassignStudentData.studentId}
+                  onChange={(e) =>
+                    setUnassignStudentData({
+                      ...unassignStudentData,
+                      studentId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Student</option>
+                  {students.map((student) => (
+                    <option key={student._id} value={student._id}>
+                      {student.userId.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={unassignStudentData.courseId}
+                  onChange={(e) =>
+                    setUnassignStudentData({
+                      ...unassignStudentData,
+                      courseId: e.target.value,
+                    })
+                  }
+                  className='block w-full p-2 mb-2 border rounded'
+                >
+                  <option value=''>Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className='px-4 py-2 bg-gray-600 text-white rounded-md'
+                  onClick={handleUnassignCourseFromStudent}
+                >
+                  Unassign
+                </button>
+                <button
+                  className='ml-4 px-4 py-2 bg-gray-500 text-white rounded-md'
+                  onClick={() => setShowUnassignStudentCourseForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {showBulkRegisterForm && (
+              <div className='mt-4 border p-4 rounded-md shadow-md'>
+                <h3 className='text-lg font-semibold mb-2'>Upload CSV File</h3>
+                <input
+                  type='file'
+                  accept='.csv'
+                  onChange={handleFileChange}
+                  className='border p-2 w-full'
+                />
+                <div className='mt-4'>
                   <button
-                    onClick={handleAddStudent}
-                    className='px-6 py-2 bg-blue-500 text-white rounded-md'
+                    className='px-4 py-2 bg-green-500 text-white rounded-md'
+                    onClick={handleBulkRegister}
                   >
-                    Add Student
+                    Upload and Register
+                  </button>
+                  <button
+                    className='ml-4 px-4 py-2 bg-gray-500 text-white rounded-md'
+                    onClick={() => setShowBulkRegisterForm(false)}
+                  >
+                    Cancel
                   </button>
                 </div>
               </div>

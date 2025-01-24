@@ -4,7 +4,7 @@ import navlogo from '../Images/navlogo.png'; // Adjust the import path as necess
 import { useNavigate } from 'react-router-dom'
 
 
-const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurrentSection }) => {
+const Evaluatorsidenavbar = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurrentSection }) => {
   const navigate = useNavigate() 
   const handleSignOut = () => {
     // Perform any necessary sign out logic, such as clearing tokens or user data
@@ -24,23 +24,41 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurrentSe
       </div>
       <nav className='flex flex-col flex-grow p-4'>
         <a
-          href='#dashboard'
-          onClick={() => setCurrentSection('dashboard')}
-          className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${
-            currentSection === 'dashboard' && 'bg-primary text-secondary'
-          }`}
-        >
-          <FaTachometerAlt className='mr-3' />
-          DASHBOARD
-        </a>
-        <a
           href='#course'
-          onClick={() => setCurrentSection('course')}
+          onClick={() => setCurrentSection('dashboard')}
           className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${
             currentSection === 'course' && 'bg-primary text-secondary'
           }`}
         >
-          <FaBook className='mr-3' /> COURSE
+          <FaTachometerAlt className='mr-3' />
+          Course
+        </a>
+        <a
+          href='#studentlist'
+          onClick={() => setCurrentSection('course')}
+          className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${
+            currentSection === 'studentlist' && 'bg-primary text-secondary'
+          }`}
+        >
+          <FaBook className='mr-3' /> student list
+        </a>
+        <a
+          href='#scorecolumn'
+          onClick={() => setCurrentSection('course')}
+          className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${
+            currentSection === 'scorecolumn' && 'bg-primary text-secondary'
+          }`}
+        >
+          <FaBook className='mr-3' /> score column
+        </a>
+        <a
+          href='#certification'
+          onClick={() => setCurrentSection('course')}
+          className={`flex items-center px-4 py-2 mt-5 text-gray-700 hover:bg-primary hover:text-secondary rounded ${
+            currentSection === 'certification' && 'bg-primary text-secondary'
+          }`}
+        >
+          <FaBook className='mr-3' /> Certification
         </a>
         <a
           href='#profile'
@@ -66,4 +84,4 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, currentSection, setCurrentSe
   )
 };
 
-export default Sidebar;
+export default Evaluatorsidenavbar

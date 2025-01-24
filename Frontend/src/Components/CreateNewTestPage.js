@@ -124,7 +124,7 @@ const CreateNewTestPage = () => {
             <button
               onClick={() => setSelectedSection('MCQ')}
               className={`px-6 py-2 ${
-                selectedSection === 'MCQ' ? 'bg-blue-500' : 'bg-gray-500'
+                selectedSection === 'MCQ' ? 'bg-primary ' : 'bg-gray-500'
               } text-white rounded-md mr-4`}
             >
               MCQ
@@ -132,7 +132,9 @@ const CreateNewTestPage = () => {
             <button
               onClick={() => setSelectedSection('Coding')}
               className={`px-6 py-2 ${
-                selectedSection === 'Coding' ? 'bg-blue-500' : 'bg-gray-500'
+                selectedSection === 'Coding'
+                  ? 'bg-primary '
+                  : 'bg-gray-500'
               } text-white rounded-md`}
             >
               Coding

@@ -11,30 +11,90 @@ const CreateMCQQuestions = ({ moduleId }) => {
   const [userAnswers, setUserAnswers] = useState([])
 
   const handleAddQuestion = async () => {
-    const newQuestionObject = {
-      question: newQuestion,
-      options: [...options],
-      correctAnswerIndex: options.indexOf(correctAnswer),
-    }
+  const newQuestionObject = {
+    question: newQuestion,
+    options: [...options],
+    correctAnswer: correctAnswer, // Send the correct answer directly as per the API response structure
+  }
 
-    try {
-      const response = await axios.post(
-        `http://localhost:5000/api/modules/${moduleId}/mcqs`,
-        { mcqs: [newQuestionObject] } // Payload as expected by the backend
-      )
-      console.log('Question added:', response.data)
+  try {
+    const response = await axios.post(
+      `http://localhost:5000/api/modules/${moduleId}/mcqs`,
+      { mcqs: [newQuestionObject] } // Payload matches backend expectations
+    )
 
-      setQuestions([...questions, newQuestionObject])
+    if (response.data.success) {
+      console.log('Question added:', response.data.mcqs)
+
+      // Update the local questions state with the newly added question from the response
+      setQuestions((prevQuestions) => [...prevQuestions, ...response.data.mcqs])
       setNewQuestion('')
       setOptions(['', '', '', ''])
       setCorrectAnswer('')
-    } catch (error) {
-      console.error(
-        'Error adding question:',
-        error.response?.data || error.message
+    } else {
+      console.error('Failed to add question:', response.data.message)
+    }
+  } catch (error) {
+    console.error('Error adding question:', error.response?.data || error.message)
+  }
+}
+
+const handleUpdateQuestion = async () => {
+  if (selectedQuestionIndex !== null) {
+    const updatedQuestionObject = {
+      question: newQuestion,
+      options: [...options],
+      correctAnswer: correctAnswer, // Update the correct answer field as per the API
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/modules/mcqs/${questions[selectedQuestionIndex]._id}`,
+        updatedQuestionObject
       )
+
+      if (response.data.success) {
+        console.log('Question updated:', response.data.mcq)
+
+        // Update the specific question in the local questions state
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((q, index) =>
+            index === selectedQuestionIndex ? response.data.mcq : q
+          )
+        )
+        setSelectedQuestionIndex(null)
+        setNewQuestion('')
+        setOptions(['', '', '', ''])
+        setCorrectAnswer('')
+      } else {
+        console.error('Failed to update question:', response.data.message)
+      }
+    } catch (error) {
+      console.error('Error updating question:', error.response?.data || error.message)
     }
   }
+}
+
+const handleDeleteQuestion = async (index) => {
+  try {
+    const questionId = questions[index]._id // Get the specific question ID
+    const response = await axios.delete(
+      `http://localhost:5000/api/modules/mcqs/${questionId}`
+    )
+
+    if (response.data.success) {
+      console.log('Question deleted:', response.data.message)
+
+      // Remove the deleted question from the local state
+      setQuestions((prevQuestions) => prevQuestions.filter((_, i) => i !== index))
+    } else {
+      console.error('Failed to delete question:', response.data.message)
+    }
+  } catch (error) {
+    console.error('Error deleting question:', error.response?.data || error.message)
+  }
+}
+
 
 
   const handleEditQuestion = (index) => {
@@ -46,48 +106,9 @@ const CreateMCQQuestions = ({ moduleId }) => {
     )
   }
 
-  const handleUpdateQuestion = async () => {
-    if (selectedQuestionIndex !== null) {
-      const updatedQuestionObject = {
-        question: newQuestion,
-        options: [...options],
-        correctAnswerIndex: options.indexOf(correctAnswer),
-      }
+  
 
-      try {
-        const response = await axios.put(
-          `http://localhost:5000/api/modules/${moduleId}/mcqs/${selectedQuestionIndex}`,
-          updatedQuestionObject
-        )
-        console.log('Question updated:', response.data)
-
-        const updatedQuestions = [...questions]
-        updatedQuestions[selectedQuestionIndex] = updatedQuestionObject
-        setQuestions(updatedQuestions)
-        setSelectedQuestionIndex(null)
-        setNewQuestion('')
-        setOptions(['', '', '', ''])
-        setCorrectAnswer('')
-      } catch (error) {
-        console.error('Error updating question:', error)
-      }
-    }
-  }
-
-  const handleDeleteQuestion = async (index) => {
-    try {
-      await axios.delete(
-        `http://localhost:5000/api/modules/${moduleId}/mcqs/${index}`
-      )
-      console.log('Question deleted')
-
-      const updatedQuestions = [...questions]
-      updatedQuestions.splice(index, 1)
-      setQuestions(updatedQuestions)
-    } catch (error) {
-      console.error('Error deleting question:', error)
-    }
-  }
+  
 
   const handlePostTest = () => {
     setQuizStarted(true)
@@ -103,10 +124,7 @@ const CreateMCQQuestions = ({ moduleId }) => {
   const handleSubmitQuiz = () => {
     let score = 0
     for (let i = 0; i < questions.length; i++) {
-      if (
-        questions[i].options.indexOf(userAnswers[i]) ===
-        questions[i].correctAnswerIndex
-      ) {
+      if (userAnswers[i] === questions[i].correctAnswer) {
         score++
       }
     }
@@ -148,7 +166,7 @@ const CreateMCQQuestions = ({ moduleId }) => {
                   }
                 />
                 <button
-                  className='ml-2 px-3 py-1 bg-red-500 text-white rounded-md'
+                  className='ml-2 px-3 py-1 bg-primary text-white rounded-md'
                   onClick={() =>
                     setOptions(options.filter((opt, i) => i !== index))
                   }
@@ -183,7 +201,7 @@ const CreateMCQQuestions = ({ moduleId }) => {
           </div>
           <div className='flex space-x-4'>
             <button
-              className='bg-blue-500 text-white rounded-md px-4 py-2'
+              className='bg-primary text-white rounded-md px-4 py-2'
               onClick={
                 selectedQuestionIndex === null
                   ? handleAddQuestion
@@ -237,7 +255,7 @@ const CreateMCQQuestions = ({ moduleId }) => {
             ))}
           </div>
           <button
-            className='bg-green-500 text-white rounded-md px-4 py-2 mt-4'
+            className='bg-gray-500 text-white rounded-md px-4 py-2 mt-4'
             onClick={handlePostTest}
           >
             Start Quiz

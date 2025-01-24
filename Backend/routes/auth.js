@@ -8,7 +8,7 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, 'yourSecretKey'); // Use the same secret key as in your login function
+    const decoded = jwt.verify(token, 'secreat123'); // Use the same secret key as in your login function
     req.user = decoded.user;
     next();
   } catch (error) {

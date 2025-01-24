@@ -1,0 +1,5 @@
+name,email,password,role,courseTitle
+John Doe,doe@example.com,password123,student,htmlJavaScript Basics
+Jane Smith,jane@example.com,password456,student,htmlJavaScript Basics
+Mike Johnson,mike@example.com,password789,student,htmlJavaScript Basics
+Emily Davis,emily@example.com,password101,student,htmlJavaScript Basics
